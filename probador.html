@@ -39,7 +39,7 @@
 
 .tryon-main{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:28px;align-items:start}
 
-.stage{position:relative;background:#0B0910;border:1px solid var(--border-foil);border-radius:var(--radius-2);overflow:hidden;aspect-ratio:4/3;display:flex;align-items:center;justify-content:center}
+.stage{position:relative;background:#0B0910;border:1px solid var(--border-foil);border-radius:var(--radius-2);overflow:hidden;aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;touch-action:none}
 .stage video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
 .stage #overlay{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1);pointer-events:none}
 .stage #photoCanvas{max-width:100%;max-height:100%;touch-action:none;cursor:grab}
@@ -151,7 +151,7 @@
         <input type="file" id="fileInput" accept="image/*" hidden>
       </div>
       <div class="manual" id="manual" hidden>
-        <span class="manual-hint">Arrastra el sombrero para moverlo · pellizca para girar y escalar</span>
+        <span class="manual-hint">Arrastra para mover el sombrero · pellizca con dos dedos para escalar</span>
         <label>Tamaño</label>
         <input type="range" id="manualScale" min="0.4" max="2.2" step="0.01" value="1">
         <button class="btn btn-outline" id="manualReset" style="padding:9px 18px;font-size:12px">Reajustar</button>
@@ -207,9 +207,12 @@ let stream = null, rafId = null, lastVideoTime = -1, faceSeenAt = 0;
 const hatImgs = {};              // key -> HTMLImageElement (precargados)
 let photoImg = null;             // canvas base con la foto subida
 let photoPose = null;            // colocación detectada en la foto {x,y,w,rot} o null
-const manual = { dx: 0, dy: 0, scale: 1, rot: 0 };
+const manual = { dx: 0, dy: 0, scale: 1, rot: 0 };            // ajuste manual en modo foto
+const liveManual = { dx: 0, dy: 0, scale: 1 };                // ajuste manual en modo cámara (dx/dy en fracciones de ancho de cara)
 const smooth = { x: 0, y: 0, w: 0, rot: 0, init: false };
 const LERP = 0.35;
+// ancho de cara suavizado (para expresar el nudge manual en vivo de forma independiente a la distancia)
+const liveFaceW = () => (smooth.init && smooth.w) ? smooth.w / HATS[currentHat].scale : overlay.width * 0.2;
 const DEBUG = new URLSearchParams(location.search).get('debug') === '1';
 
 const secure = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
@@ -237,6 +240,7 @@ function setToast(msg) {
 function showStart(extraMsg) {
   mode = 'idle';
   $('shootBtn').disabled = true;
+  $('manual').hidden = true;
   const actions = [];
   if (secure) actions.push(['Activar cámara', 'btn-foil', startCamera]);
   actions.push([secure ? 'O sube una foto' : 'Subir una foto', 'btn-outline', () => $('fileInput').click()]);
@@ -326,8 +330,10 @@ async function startCamera() {
     return;
   }
   await ensureMode('VIDEO');
-  photoCanvas.hidden = true; $('manual').hidden = true; $('backCamBtn').hidden = true;
+  photoCanvas.hidden = true; $('backCamBtn').hidden = true;
   video.hidden = false; overlay.hidden = false;
+  Object.assign(liveManual, { dx: 0, dy: 0, scale: 1 });
+  $('manual').hidden = false; $('manualScale').value = 1;
   video.srcObject = stream;
   try { await video.play(); } catch {}
   mode = 'live';
@@ -354,7 +360,13 @@ function liveLoop() {
       if (!smooth.init) { Object.assign(smooth, { x: t.x, y: t.y, w: t.w, rot: t.rot, init: true }); }
       smooth.x = lerp(smooth.x, t.x, LERP); smooth.y = lerp(smooth.y, t.y, LERP);
       smooth.w = lerp(smooth.w, t.w, LERP); smooth.rot = lerpAngle(smooth.rot, t.rot, LERP);
-      drawHatAt(octx, { x: smooth.x, y: smooth.y, w: smooth.w, rot: smooth.rot });
+      const fw = liveFaceW();
+      drawHatAt(octx, {
+        x: smooth.x + liveManual.dx * fw,
+        y: smooth.y + liveManual.dy * fw,
+        w: smooth.w * liveManual.scale,
+        rot: smooth.rot,
+      });
       drawDebug(octx, t);
     } else {
       smooth.init = false;
@@ -445,7 +457,7 @@ function renderPhoto() {
 const pointers = new Map();
 let pinchStart = null;
 photoCanvas.addEventListener('pointerdown', e => {
-  photoCanvas.setPointerCapture(e.pointerId);
+  try { photoCanvas.setPointerCapture(e.pointerId); } catch {}
   pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
   if (pointers.size === 2) {
     const [a, b] = [...pointers.values()];
@@ -474,11 +486,49 @@ const endPointer = e => { pointers.delete(e.pointerId); if (pointers.size < 2) p
 photoCanvas.addEventListener('pointerup', endPointer);
 photoCanvas.addEventListener('pointercancel', endPointer);
 
-$('manualScale').addEventListener('input', e => { manual.scale = +e.target.value; renderPhoto(); });
+/* Ajuste manual en modo cámara en vivo: arrastrar mueve, pellizcar escala (sobre el ajuste automático) */
+const stage = $('stage');
+const livePointers = new Map();
+let livePinch = null;
+stage.addEventListener('pointerdown', e => {
+  if (mode !== 'live') return;
+  try { stage.setPointerCapture(e.pointerId); } catch {}
+  livePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (livePointers.size === 2) {
+    const [a, b] = [...livePointers.values()];
+    livePinch = { d: Math.hypot(b.x - a.x, b.y - a.y), scale: liveManual.scale };
+  }
+});
+stage.addEventListener('pointermove', e => {
+  if (mode !== 'live' || !livePointers.has(e.pointerId)) return;
+  const prev = livePointers.get(e.pointerId);
+  const rect = overlay.getBoundingClientRect();
+  const k = overlay.height / rect.height;           // px de canvas por px de pantalla
+  const fw = liveFaceW();
+  if (livePointers.size === 1) {
+    liveManual.dx += (-(e.clientX - prev.x) * k) / fw;   // negado: el overlay va espejado
+    liveManual.dy += ((e.clientY - prev.y) * k) / fw;
+  }
+  livePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (livePointers.size === 2 && livePinch) {
+    const [a, b] = [...livePointers.values()];
+    const d = Math.hypot(b.x - a.x, b.y - a.y);
+    liveManual.scale = Math.min(2.2, Math.max(0.4, livePinch.scale * d / livePinch.d));
+    $('manualScale').value = liveManual.scale;
+  }
+});
+const endLive = e => { livePointers.delete(e.pointerId); if (livePointers.size < 2) livePinch = null; };
+stage.addEventListener('pointerup', endLive);
+stage.addEventListener('pointercancel', endLive);
+
+$('manualScale').addEventListener('input', e => {
+  if (mode === 'live') { liveManual.scale = +e.target.value; }
+  else { manual.scale = +e.target.value; renderPhoto(); }
+});
 $('manualReset').addEventListener('click', () => {
-  Object.assign(manual, { dx: 0, dy: 0, scale: 1, rot: 0 });
+  if (mode === 'live') { Object.assign(liveManual, { dx: 0, dy: 0, scale: 1 }); }
+  else { Object.assign(manual, { dx: 0, dy: 0, scale: 1, rot: 0 }); renderPhoto(); }
   $('manualScale').value = 1;
-  renderPhoto();
 });
 
 /* ---------- Captura ---------- */
@@ -492,7 +542,13 @@ $('shootBtn').addEventListener('click', async () => {
     const ctx = out.getContext('2d');
     ctx.translate(out.width, 0); ctx.scale(-1, 1);      // captura espejada = lo que ves
     ctx.drawImage(video, 0, 0);
-    drawHatAt(ctx, { x: smooth.x, y: smooth.y, w: smooth.w, rot: smooth.rot });
+    const fw = liveFaceW();
+    drawHatAt(ctx, {
+      x: smooth.x + liveManual.dx * fw,
+      y: smooth.y + liveManual.dy * fw,
+      w: smooth.w * liveManual.scale,
+      rot: smooth.rot,
+    });
   } else return;
 
   const blob = await new Promise(r => out.toBlob(r, 'image/png'));
