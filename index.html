@@ -19,6 +19,8 @@
 .nav-links a:hover{color:var(--text-primary);opacity:1}
 .nav-bag{font-family:var(--font-ui);font-size:var(--type-small);color:var(--champagne);border:1px solid var(--border-foil);padding:8px 16px;transition:background var(--dur-fast) var(--ease-out)}
 .nav-bag:hover{background:rgba(198,161,91,.12);opacity:1}
+.nav-cat-mobile{display:none;font-family:var(--font-ui);font-size:var(--type-small);font-weight:var(--weight-ui-semibold);letter-spacing:.02em;color:var(--champagne);border:1px solid var(--border-foil);padding:8px 16px}
+.nav-cat-mobile:hover{opacity:1;color:var(--champagne)}
 
 /* ---------- Hero ---------- */
 .hero{position:relative;min-height:100svh;display:flex;align-items:center;background:#0B0910 url('assets/hero.jpg') no-repeat right center / cover}
@@ -83,6 +85,7 @@
 @media (max-width:900px){
   .grid{grid-template-columns:repeat(2,1fr)}
   .nav-links{display:none}
+  .nav-cat-mobile{display:inline-flex}
   .curation-inner{flex-direction:column;align-items:flex-start}
   .curation-spark{font-size:72px}
   .hero{background-position:72% center}
@@ -107,6 +110,7 @@
       <a href="#">Editorial</a>
       <a href="#" class="nav-bag">Bag — 0</a>
     </div>
+    <a href="catalogo.html" class="nav-cat-mobile">Catálogo</a>
   </div>
 </nav>
 
