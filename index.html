@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rhinestone Row — The hat is the outfit</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+/* ---------- Page layout ---------- */
+.wrap{max-width:1200px;margin:0 auto;padding:0 32px}
+
+/* ---------- Nav ---------- */
+.nav{position:fixed;top:0;left:0;right:0;z-index:10;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);background:rgba(20,18,28,.55);border-bottom:1px solid var(--border-subtle)}
+.nav-inner{display:flex;align-items:center;justify-content:space-between;height:64px}
+.nav-logo{font-family:var(--font-display);font-size:20px;color:var(--text-primary);letter-spacing:.01em}
+.nav-logo:hover{opacity:1}
+.nav-links{display:flex;gap:28px;align-items:center}
+.nav-links a{font-family:var(--font-ui);font-size:var(--type-small);color:var(--text-secondary)}
+.nav-links a:hover{color:var(--text-primary);opacity:1}
+.nav-bag{font-family:var(--font-ui);font-size:var(--type-small);color:var(--champagne);border:1px solid var(--border-foil);padding:8px 16px;transition:background var(--dur-fast) var(--ease-out)}
+.nav-bag:hover{background:rgba(198,161,91,.12);opacity:1}
+
+/* ---------- Hero ---------- */
+.hero{position:relative;min-height:100svh;display:flex;align-items:center;background:#0B0910 url('assets/hero.jpg') no-repeat right center / cover}
+.hero::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,rgba(11,9,16,.88) 0%,rgba(11,9,16,.62) 34%,rgba(11,9,16,0) 62%)}
+.hero-content{position:relative;z-index:1;display:flex;flex-direction:column;align-items:flex-start;gap:24px;padding-top:64px;max-width:640px}
+.hero-eyebrow{color:var(--champagne);display:flex;align-items:center;gap:10px}
+.hero-eyebrow .spark{color:var(--fuchsia);font-size:13px}
+.hero h1{font-size:var(--type-hero);color:var(--pearl);max-width:560px}
+.hero-dek{font-family:var(--font-ui);font-size:var(--type-lead);color:var(--text-secondary);max-width:420px;margin:0}
+.hero-ctas{display:flex;gap:14px;margin-top:8px}
+.hero-scroll{position:absolute;bottom:32px;left:32px;z-index:1;color:var(--text-tertiary);display:flex;align-items:center;gap:10px}
+
+/* ---------- Buttons ---------- */
+.btn{font-family:var(--font-ui);font-weight:var(--weight-ui-semibold);letter-spacing:.02em;cursor:pointer;border:1px solid transparent;border-radius:var(--radius-0);display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:15px 30px;font-size:14px;transition:background var(--dur-fast) var(--ease-out),color var(--dur-fast) var(--ease-out),border-color var(--dur-fast) var(--ease-out)}
+.btn-foil{background:var(--champagne);color:var(--ink)}
+.btn-foil:hover{background:var(--champagne-bright);opacity:1;color:var(--ink)}
+.btn-outline{background:transparent;color:var(--text-primary);border-color:var(--border-strong)}
+.btn-outline:hover{border-color:var(--champagne);color:var(--champagne);opacity:1}
+
+/* ---------- Edit / product grid ---------- */
+.edit{padding-top:96px;padding-bottom:96px}
+.edit-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:28px}
+.edit-head h2{font-size:var(--type-title);color:var(--pearl)}
+.edit-head a{font-family:var(--font-ui);font-size:var(--type-small);color:var(--text-secondary)}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+.card{background:var(--surface-raised);border:1px solid var(--border-subtle);border-radius:var(--radius-2);overflow:hidden;cursor:pointer;transition:border-color var(--dur-base) var(--ease-out),transform var(--dur-base) var(--ease-out)}
+.card:hover{border-color:var(--border-foil)}
+.card-img{height:260px;position:relative;display:flex;align-items:center;justify-content:center}
+.card-img span{color:rgba(243,238,228,.28);font-size:var(--type-micro);letter-spacing:var(--tracking-caps);text-transform:uppercase}
+.card-img img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.badge{position:absolute;top:12px;left:12px;font-family:var(--font-ui);font-size:10px;font-weight:var(--weight-ui-semibold);letter-spacing:var(--tracking-caps);text-transform:uppercase;padding:5px 10px;border-radius:var(--radius-pill)}
+.badge-foil{background:rgba(198,161,91,.16);color:var(--champagne-bright);border:1px solid var(--border-foil)}
+.badge-spark{background:var(--fuchsia);color:#fff}
+.card-body{padding:14px 16px;display:flex;flex-direction:column;gap:3px}
+.card-sub{color:var(--text-tertiary)}
+.card-name{font-family:var(--font-display);font-size:18px;color:var(--pearl)}
+.card-price{font-family:var(--font-display);font-size:15px;color:var(--text-accent)}
+
+/* ---------- Curation (pearl) ---------- */
+.curation{background:var(--pearl)}
+.curation-inner{display:flex;justify-content:space-between;align-items:center;gap:48px;padding-top:88px;padding-bottom:88px}
+.curation-copy{max-width:480px;display:flex;flex-direction:column;gap:14px}
+.curation-copy .rr-caps{color:var(--champagne-deep)}
+.curation-copy h2{font-size:36px;color:var(--ink)}
+.curation-copy p{color:rgba(20,18,28,.64);margin:0}
+.curation-spark{font-family:var(--font-display);font-size:120px;color:var(--champagne);line-height:1}
+
+/* ---------- Editorial band ---------- */
+.band{border-top:1px solid var(--border-subtle);border-bottom:1px solid var(--border-subtle)}
+.band-inner{padding-top:72px;padding-bottom:72px;display:flex;flex-direction:column;align-items:center;gap:16px;text-align:center}
+.band blockquote{font-family:var(--font-display);font-size:28px;font-style:italic;color:var(--pearl);margin:0;max-width:640px}
+.band cite{font-style:normal}
+
+/* ---------- Footer ---------- */
+.footer-inner{padding-top:40px;padding-bottom:40px;display:flex;justify-content:space-between;align-items:center;font-size:var(--type-small);color:var(--text-tertiary)}
+.footer-logo{font-family:var(--font-display);font-size:16px;color:var(--text-secondary)}
+.footer-links{display:flex;gap:20px}
+.footer-links a{color:var(--text-tertiary)}
+.footer-links a:hover{color:var(--text-secondary)}
+
+/* ---------- Responsive ---------- */
+@media (max-width:900px){
+  .grid{grid-template-columns:repeat(2,1fr)}
+  .nav-links{display:none}
+  .curation-inner{flex-direction:column;align-items:flex-start}
+  .curation-spark{font-size:72px}
+  .hero{background-position:72% center}
+  .hero::after{background:linear-gradient(180deg,rgba(11,9,16,.3) 0%,rgba(11,9,16,.82) 70%)}
+  .hero-content{justify-content:flex-end}
+}
+@media (max-width:560px){
+  .grid{grid-template-columns:1fr}
+  .hero-ctas{flex-direction:column;align-items:stretch;width:100%}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="wrap nav-inner">
+    <a href="#" class="nav-logo">Rhinestone Row</a>
+    <div class="nav-links">
+      <a href="#edit">The edit</a>
+      <a href="#curation">Curation</a>
+      <a href="#">Editorial</a>
+      <a href="#" class="nav-bag">Bag — 0</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap" style="width:100%">
+    <div class="hero-content">
+      <span class="rr-caps hero-eyebrow"><span class="spark">✦</span> New arrivals — summer '26</span>
+      <h1>The hat is the outfit.</h1>
+      <p class="hero-dek">Hand-picked from the Bullhide line. Curated in Texas, worn everywhere that matters.</p>
+      <div class="hero-ctas">
+        <a href="#edit" class="btn btn-foil">See the drop</a>
+        <a href="#" class="btn btn-outline">Editorial</a>
+      </div>
+    </div>
+  </div>
+  <span class="rr-caps hero-scroll">Scroll ↓</span>
+</header>
+
+<section class="edit wrap" id="edit">
+  <div class="edit-head">
+    <h2>This week's edit</h2>
+    <a href="#">See all 24 →</a>
+  </div>
+  <div class="grid">
+    <article class="card">
+      <div class="card-img" style="background:#0B0910">
+        <img src="assets/hat-leather-distressed.jpg" alt="Distressed brown leather cowboy hat with bone bead band">
+        <span class="badge badge-foil">Curator's pick</span>
+      </div>
+      <div class="card-body">
+        <span class="rr-caps card-sub">Bullhide · crazy horse leather</span>
+        <span class="card-name">Kingman — tobacco</span>
+        <span class="card-price">$248</span>
+      </div>
+    </article>
+    <article class="card">
+      <div class="card-img" style="background:#0B0910">
+        <img src="assets/hat-straw-black.jpg" alt="Black straw cowboy hat with tooled leather band and turquoise concho">
+        <span class="badge badge-spark">Last one</span>
+      </div>
+      <div class="card-body">
+        <span class="rr-caps card-sub">Bullhide · 50X straw</span>
+        <span class="card-name">Rodeo Round-Up — black</span>
+        <span class="card-price">$310</span>
+      </div>
+    </article>
+    <article class="card">
+      <div class="card-img" style="background:#0B0910">
+        <img src="assets/hat-leather-saddle.jpg" alt="Saddle brown leather hat with turquoise concho band">
+        <span class="badge badge-spark">Just in</span>
+      </div>
+      <div class="card-body">
+        <span class="rr-caps card-sub">Bullhide · crushable leather</span>
+        <span class="card-name">Jason — saddle brown</span>
+        <span class="card-price">$186</span>
+      </div>
+    </article>
+    <article class="card">
+      <div class="card-img" style="background:#0B0910">
+        <img src="assets/hat-felt-rust.jpg" alt="Rust felt cowboy hat with ornate studded band">
+        <span class="badge badge-foil">Restocked</span>
+      </div>
+      <div class="card-body">
+        <span class="rr-caps card-sub">Bullhide · 6X felt</span>
+        <span class="card-name">Montecarlo — rust</span>
+        <span class="card-price">$295</span>
+      </div>
+    </article>
+  </div>
+</section>
+
+<section class="curation rr-light" id="curation">
+  <div class="wrap curation-inner">
+    <div class="curation-copy">
+      <span class="rr-caps">✦ The curation</span>
+      <h2>We don't make hats. We make the call.</h2>
+      <p>Every Bullhide in the row earned its place — shape, feel, and how it photographs at golden hour. If it's here, it's the one.</p>
+    </div>
+    <span class="curation-spark">✦</span>
+  </div>
+</section>
+
+<section class="band">
+  <div class="wrap band-inner">
+    <span class="rr-caps" style="color:var(--champagne)">Worn everywhere that matters</span>
+    <blockquote>"An outlaw with good taste walks in wearing the room's best decision."</blockquote>
+    <cite class="rr-caps" style="color:var(--text-tertiary)">— The Row, issue no. 1</cite>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap footer-inner">
+    <span class="footer-logo">Rhinestone Row</span>
+    <div class="footer-links">
+      <a href="#">Shipping</a>
+      <a href="#">Returns</a>
+      <a href="#">Instagram</a>
+    </div>
+    <span>Curated ✦ Elevated ✦ Worn</span>
+  </div>
+</footer>
+
+</body>
+</html>

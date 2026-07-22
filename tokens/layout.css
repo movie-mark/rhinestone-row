@@ -1,0 +1,20 @@
+:root{
+/* Spacing — 4px base */
+--space-1:4px;--space-2:8px;--space-3:12px;--space-4:16px;--space-5:24px;--space-6:32px;--space-7:48px;--space-8:64px;--space-9:96px;
+/* Radii — sharp, editorial */
+--radius-0:0px;      /* default: editorial, squared */
+--radius-1:2px;      /* inputs, tags */
+--radius-2:4px;      /* cards, dialogs */
+--radius-pill:999px; /* pills, badges */
+/* Shadows — soft ink, never heavy */
+--shadow-card:0 1px 2px rgba(20,18,28,.08),0 8px 24px rgba(20,18,28,.10);
+--shadow-overlay:0 4px 12px rgba(20,18,28,.24),0 24px 64px rgba(20,18,28,.32);
+--shadow-foil-glow:0 0 0 1px var(--border-foil),0 4px 20px rgba(198,161,91,.25);
+--shadow-spark-glow:0 0 16px rgba(224,68,127,.45);
+/* Motion */
+--ease-out:cubic-bezier(.22,1,.36,1); /* @kind other */
+--ease-in-out:cubic-bezier(.65,0,.35,1); /* @kind other */
+--dur-fast:150ms; /* @kind other */
+--dur-base:250ms; /* @kind other */
+--dur-slow:450ms; /* @kind other */
+}

@@ -1,0 +1,25 @@
+:root{
+--font-display:'Bodoni Moda',Didot,'Bodoni MT',serif;
+--font-ui:'Archivo','Helvetica Neue',Arial,sans-serif;
+/* Display scale (Bodoni Moda) */
+--type-hero:clamp(56px,7vw,96px);
+--type-display:48px;
+--type-title:32px;
+--type-heading:24px;
+/* UI scale (Archivo) */
+--type-lead:18px;
+--type-body:15px;
+--type-small:13px;
+--type-micro:11px;
+/* Weights */
+--weight-display:500;
+--weight-display-bold:700;
+--weight-ui:400;
+--weight-ui-medium:500;
+--weight-ui-semibold:600;
+/* Details */
+--leading-display:1.04;
+--leading-body:1.55;
+--tracking-display:-0.01em;
+--tracking-caps:0.14em; /* Archivo uppercase micro-labels */
+}
