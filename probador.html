@@ -153,7 +153,7 @@
       <div class="manual" id="manual" hidden>
         <span class="manual-hint">Arrastra para mover el sombrero · pellizca con dos dedos para escalar</span>
         <label>Tamaño</label>
-        <input type="range" id="manualScale" min="0.4" max="2.2" step="0.01" value="1">
+        <input type="range" id="manualScale" min="0.82" max="1.25" step="0.01" value="1">
         <button class="btn btn-outline" id="manualReset" style="padding:9px 18px;font-size:12px">Reajustar</button>
       </div>
     </aside>
@@ -270,6 +270,12 @@ async function ensureMode(m) {
 /* ---------- Anclaje del sombrero ---------- */
 const lerp = (a, b, t) => a + (b - a) * t;
 const lerpAngle = (a, b, t) => a + Math.atan2(Math.sin(b - a), Math.cos(b - a)) * t;
+const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+
+/* Límites del ajuste manual: afinado sutil, no puede quedar diminuto/gigante ni volar lejos */
+const SCALE_MIN = 0.82, SCALE_MAX = 1.25;   // escala relativa al ajuste automático (±~20%)
+const NUDGE_MAX = 0.3;                       // desplazamiento máx. en fracciones de ancho de cara
+const DRAG_GAIN = 0.55;                       // el dedo recorre más que el sombrero (arrastre suave)
 
 // Devuelve la colocación {x,y,w,rot} a partir de los landmarks (coords de canvas)
 function poseFromLandmarks(lm, W, H) {
@@ -476,7 +482,7 @@ photoCanvas.addEventListener('pointermove', e => {
   if (pointers.size === 2 && pinchStart) {
     const [a, b] = [...pointers.values()];
     const d = Math.hypot(b.x - a.x, b.y - a.y), ang = Math.atan2(b.y - a.y, b.x - a.x);
-    manual.scale = Math.min(2.2, Math.max(0.4, pinchStart.scale * d / pinchStart.d));
+    manual.scale = clamp(pinchStart.scale * d / pinchStart.d, SCALE_MIN, SCALE_MAX);
     manual.rot = pinchStart.rot + (ang - pinchStart.ang);
     $('manualScale').value = manual.scale;
   }
@@ -506,14 +512,14 @@ stage.addEventListener('pointermove', e => {
   const k = overlay.height / rect.height;           // px de canvas por px de pantalla
   const fw = liveFaceW();
   if (livePointers.size === 1) {
-    liveManual.dx += (-(e.clientX - prev.x) * k) / fw;   // negado: el overlay va espejado
-    liveManual.dy += ((e.clientY - prev.y) * k) / fw;
+    liveManual.dx = clamp(liveManual.dx + (-(e.clientX - prev.x) * k) / fw * DRAG_GAIN, -NUDGE_MAX, NUDGE_MAX);  // negado: el overlay va espejado
+    liveManual.dy = clamp(liveManual.dy + ((e.clientY - prev.y) * k) / fw * DRAG_GAIN, -NUDGE_MAX, NUDGE_MAX);
   }
   livePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
   if (livePointers.size === 2 && livePinch) {
     const [a, b] = [...livePointers.values()];
     const d = Math.hypot(b.x - a.x, b.y - a.y);
-    liveManual.scale = Math.min(2.2, Math.max(0.4, livePinch.scale * d / livePinch.d));
+    liveManual.scale = clamp(livePinch.scale * d / livePinch.d, SCALE_MIN, SCALE_MAX);
     $('manualScale').value = liveManual.scale;
   }
 });
