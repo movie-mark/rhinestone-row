@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>El probador — Rhinestone Row</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+/* ---------- Page layout ---------- */
+.wrap{max-width:1200px;margin:0 auto;padding:0 32px}
+
+/* ---------- Nav (igual que index) ---------- */
+.nav{position:fixed;top:0;left:0;right:0;z-index:10;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);background:rgba(20,18,28,.55);border-bottom:1px solid var(--border-subtle)}
+.nav-inner{display:flex;align-items:center;justify-content:space-between;height:64px}
+.nav-logo{font-family:var(--font-display);font-size:20px;color:var(--text-primary);letter-spacing:.01em}
+.nav-logo:hover{opacity:1}
+.nav-links{display:flex;gap:28px;align-items:center}
+.nav-links a{font-family:var(--font-ui);font-size:var(--type-small);color:var(--text-secondary)}
+.nav-links a:hover{color:var(--text-primary);opacity:1}
+.nav-links a.active{color:var(--champagne)}
+.nav-cat-mobile{display:none;font-family:var(--font-ui);font-size:var(--type-small);font-weight:var(--weight-ui-semibold);letter-spacing:.02em;color:var(--champagne);border:1px solid var(--border-foil);padding:8px 16px}
+.nav-cat-mobile:hover{opacity:1;color:var(--champagne)}
+
+/* ---------- Buttons (igual que index) ---------- */
+.btn{font-family:var(--font-ui);font-weight:var(--weight-ui-semibold);letter-spacing:.02em;cursor:pointer;border:1px solid transparent;border-radius:var(--radius-0);display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:15px 30px;font-size:14px;transition:background var(--dur-fast) var(--ease-out),color var(--dur-fast) var(--ease-out),border-color var(--dur-fast) var(--ease-out)}
+.btn-foil{background:var(--champagne);color:var(--ink)}
+.btn-foil:hover{background:var(--champagne-bright);opacity:1;color:var(--ink)}
+.btn-outline{background:transparent;color:var(--text-primary);border-color:var(--border-strong)}
+.btn-outline:hover{border-color:var(--champagne);color:var(--champagne);opacity:1}
+.btn[disabled]{opacity:.4;pointer-events:none}
+
+/* ---------- Probador ---------- */
+.tryon{padding-top:120px;padding-bottom:80px;display:flex;flex-direction:column;gap:24px}
+.tryon-head{display:flex;flex-direction:column;gap:10px;max-width:560px}
+.tryon-head .rr-caps{color:var(--champagne);display:flex;align-items:center;gap:10px}
+.tryon-head .spark{color:var(--fuchsia);font-size:13px}
+.tryon-head h1{font-size:var(--type-title);color:var(--pearl)}
+.tryon-head p{font-family:var(--font-ui);font-size:var(--type-body);color:var(--text-secondary);margin:0}
+
+.tryon-main{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:28px;align-items:start}
+
+.stage{position:relative;background:#0B0910;border:1px solid var(--border-foil);border-radius:var(--radius-2);overflow:hidden;aspect-ratio:4/3;display:flex;align-items:center;justify-content:center}
+.stage video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
+.stage #overlay{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1);pointer-events:none}
+.stage #photoCanvas{max-width:100%;max-height:100%;touch-action:none;cursor:grab}
+.stage [hidden]{display:none}
+
+.stage-status{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;text-align:center;background:var(--scrim);padding:32px;z-index:2}
+.stage-status[hidden]{display:none}
+.stage-status .status-spark{font-family:var(--font-display);font-size:44px;color:var(--champagne);line-height:1}
+.stage-status .status-spark.pulse{animation:pulse 1.2s var(--ease-in-out) infinite}
+@keyframes pulse{0%,100%{opacity:.35}50%{opacity:1}}
+.stage-status p{font-family:var(--font-ui);color:var(--text-primary);font-size:var(--type-body);max-width:380px;margin:0}
+.stage-status .status-actions{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+
+.stage-toast{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);background:rgba(20,18,28,.82);border:1px solid var(--border-subtle);color:var(--text-primary);font-family:var(--font-ui);font-size:var(--type-small);padding:10px 18px;border-radius:var(--radius-1);z-index:2;white-space:nowrap}
+.stage-toast[hidden]{display:none}
+
+/* ---------- Panel lateral ---------- */
+.panel{display:flex;flex-direction:column;gap:20px}
+.hat-picker{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.hat-thumb{background:var(--surface-raised);border:1px solid var(--border-subtle);border-radius:var(--radius-1);cursor:pointer;padding:8px;display:flex;align-items:center;justify-content:center;aspect-ratio:1;transition:border-color var(--dur-fast) var(--ease-out)}
+.hat-thumb img{max-width:100%;max-height:100%;object-fit:contain}
+.hat-thumb:hover{border-color:var(--border-strong)}
+.hat-thumb.active{border-color:var(--border-foil);background:rgba(198,161,91,.08)}
+
+.hat-info{display:flex;flex-direction:column;gap:4px;border-top:1px solid var(--border-subtle);padding-top:16px}
+.hat-info .rr-caps{color:var(--text-tertiary)}
+.hat-info-name{font-family:var(--font-display);font-size:22px;color:var(--pearl)}
+.hat-info-price{font-family:var(--font-display);font-size:16px;color:var(--text-accent)}
+.hat-info a{font-family:var(--font-ui);font-size:var(--type-small);color:var(--text-secondary);margin-top:6px}
+.hat-info a:hover{color:var(--champagne);opacity:1}
+
+.controls{display:flex;flex-direction:column;gap:10px}
+.controls .btn{width:100%}
+
+.manual{display:flex;flex-direction:column;gap:8px;border-top:1px solid var(--border-subtle);padding-top:16px}
+.manual[hidden]{display:none}
+.manual label{font-family:var(--font-ui);font-size:var(--type-micro);letter-spacing:var(--tracking-caps);text-transform:uppercase;color:var(--text-tertiary)}
+.manual input[type=range]{width:100%;accent-color:var(--champagne)}
+.manual .manual-hint{font-family:var(--font-ui);font-size:var(--type-small);color:var(--text-tertiary)}
+.manual button{align-self:flex-start}
+
+/* ---------- Debug ---------- */
+.debug{position:fixed;right:16px;bottom:16px;z-index:20;background:var(--surface-overlay);border:1px solid var(--border-strong);border-radius:var(--radius-2);box-shadow:var(--shadow-overlay);padding:16px;display:flex;flex-direction:column;gap:8px;width:260px;font-family:var(--font-ui);font-size:12px;color:var(--text-secondary)}
+.debug label{display:flex;justify-content:space-between;gap:8px}
+.debug input[type=range]{width:130px;accent-color:var(--fuchsia)}
+.debug pre{margin:0;font-size:10px;color:var(--text-tertiary);white-space:pre-wrap;user-select:all}
+
+/* ---------- Responsive ---------- */
+@media (max-width:900px){
+  .nav-links{display:none}
+  .nav-cat-mobile{display:inline-flex}
+  .tryon{padding-top:96px}
+  .tryon-main{grid-template-columns:1fr}
+  .stage{aspect-ratio:3/4}
+  .hat-picker{grid-template-columns:repeat(4,1fr)}
+}
+@media (max-width:560px){
+  .controls{flex-direction:column}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="wrap nav-inner">
+    <a href="index.html" class="nav-logo">Rhinestone Row</a>
+    <div class="nav-links">
+      <a href="index.html#edit">The edit</a>
+      <a href="catalogo.html">Catálogo</a>
+      <a href="probador.html" class="active">Probador</a>
+      <a href="index.html#curation">Curation</a>
+    </div>
+    <a href="catalogo.html" class="nav-cat-mobile">Catálogo</a>
+  </div>
+</nav>
+
+<section class="tryon wrap">
+  <div class="tryon-head">
+    <span class="rr-caps"><span class="spark">✦</span> El probador</span>
+    <h1>Pruébatelo antes de decidir.</h1>
+    <p>Activa la cámara y el sombrero se ajusta solo a tu cabeza — o sube una foto y colócalo a mano. Todo pasa en tu navegador: ninguna imagen sale de tu dispositivo.</p>
+  </div>
+
+  <div class="tryon-main">
+    <div class="stage" id="stage">
+      <video id="cam" autoplay playsinline muted hidden></video>
+      <canvas id="overlay" hidden></canvas>
+      <canvas id="photoCanvas" hidden></canvas>
+      <div class="stage-status" id="status">
+        <span class="status-spark" id="statusSpark">✦</span>
+        <p id="statusMsg">Cargando el probador…</p>
+        <div class="status-actions" id="statusActions"></div>
+      </div>
+      <div class="stage-toast" id="toast" hidden></div>
+    </div>
+
+    <aside class="panel">
+      <div class="hat-picker" id="picker"></div>
+      <div class="hat-info">
+        <span class="rr-caps" id="hatSub"></span>
+        <span class="hat-info-name" id="hatName"></span>
+        <span class="hat-info-price" id="hatPrice"></span>
+        <a href="index.html#edit">Ver en el edit →</a>
+      </div>
+      <div class="controls">
+        <button class="btn btn-foil" id="shootBtn" disabled>Capturar ✦</button>
+        <button class="btn btn-outline" id="uploadBtn">Subir una foto</button>
+        <button class="btn btn-outline" id="backCamBtn" hidden>Volver a la cámara</button>
+        <input type="file" id="fileInput" accept="image/*" hidden>
+      </div>
+      <div class="manual" id="manual" hidden>
+        <span class="manual-hint">Arrastra el sombrero para moverlo · pellizca para girar y escalar</span>
+        <label>Tamaño</label>
+        <input type="range" id="manualScale" min="0.4" max="2.2" step="0.01" value="1">
+        <button class="btn btn-outline" id="manualReset" style="padding:9px 18px;font-size:12px">Reajustar</button>
+      </div>
+    </aside>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap" style="padding-top:24px;padding-bottom:40px;border-top:1px solid var(--border-subtle);display:flex;justify-content:space-between;font-size:var(--type-small);color:var(--text-tertiary);font-family:var(--font-ui)">
+    <span>Rhinestone Row — El probador</span>
+    <span>Curated ✦ Elevated ✦ Worn</span>
+  </div>
+</footer>
+
+<script type="module">
+import { FaceLandmarker, FilesetResolver } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14";
+
+const WASM_BASE = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm";
+const MODEL_URL = "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task";
+
+/* ---------- Sombreros + calibración ----------
+   scale   : ancho del sombrero = ancho de cara (sien a sien) × scale
+   anchorX : fracción del ancho del PNG donde está el eje del sombrero
+   anchorY : fracción de la altura del PNG donde está la línea de la cinta
+             (donde apoya en la cabeza)
+   offsetY : cuánto sube el punto de anclaje desde la frente (landmark 10),
+             en múltiplos del ancho de cara; positivo = más arriba          */
+const HATS = {
+  'felt-rust':           { name: 'Montecarlo — rust',      price: '$295', sub: 'Bullhide · 6X felt',
+                           src: 'assets/tryon/hat-felt-rust.png',
+                           scale: 2.5, anchorX: 0.50, anchorY: 0.60, offsetY: 0.10 },
+  'leather-distressed':  { name: 'Kingman — tobacco',      price: '$248', sub: 'Bullhide · crazy horse leather',
+                           src: 'assets/tryon/hat-leather-distressed.png',
+                           scale: 2.2, anchorX: 0.40, anchorY: 0.50, offsetY: 0.24 },
+  'leather-saddle':      { name: 'Jason — saddle brown',   price: '$186', sub: 'Bullhide · crushable leather',
+                           src: 'assets/tryon/hat-leather-saddle.png',
+                           scale: 2.6, anchorX: 0.50, anchorY: 0.65, offsetY: 0.07 },
+  'straw-black':         { name: 'Rodeo Round-Up — black', price: '$310', sub: 'Bullhide · 50X straw',
+                           src: 'assets/tryon/hat-straw-black.png',
+                           scale: 1.85, anchorX: 0.52, anchorY: 0.34, offsetY: 0.55 },
+};
+
+/* ---------- Estado global ---------- */
+const $ = id => document.getElementById(id);
+const video = $('cam'), overlay = $('overlay'), photoCanvas = $('photoCanvas');
+const octx = overlay.getContext('2d'), pctx = photoCanvas.getContext('2d');
+
+let landmarker = null, landmarkerMode = null;
+let currentHat = 'felt-rust';
+let mode = 'idle';               // idle | live | photo
+let stream = null, rafId = null, lastVideoTime = -1, faceSeenAt = 0;
+const hatImgs = {};              // key -> HTMLImageElement (precargados)
+let photoImg = null;             // canvas base con la foto subida
+let photoPose = null;            // colocación detectada en la foto {x,y,w,rot} o null
+const manual = { dx: 0, dy: 0, scale: 1, rot: 0 };
+const smooth = { x: 0, y: 0, w: 0, rot: 0, init: false };
+const LERP = 0.35;
+const DEBUG = new URLSearchParams(location.search).get('debug') === '1';
+
+const secure = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+
+/* ---------- Estados / UI ---------- */
+const statusEl = $('status'), statusMsg = $('statusMsg'), statusSpark = $('statusSpark'), statusActions = $('statusActions');
+const toast = $('toast');
+
+function setStatus(msg, { spinner = false, actions = [] } = {}) {
+  if (msg === null) { statusEl.hidden = true; return; }
+  statusEl.hidden = false;
+  statusMsg.textContent = msg;
+  statusSpark.classList.toggle('pulse', spinner);
+  statusActions.replaceChildren(...actions.map(([label, cls, fn]) => {
+    const b = document.createElement('button');
+    b.className = 'btn ' + cls; b.textContent = label; b.addEventListener('click', fn);
+    return b;
+  }));
+}
+function setToast(msg) {
+  toast.hidden = !msg;
+  if (msg) toast.textContent = msg;
+}
+
+function showStart(extraMsg) {
+  mode = 'idle';
+  $('shootBtn').disabled = true;
+  const actions = [];
+  if (secure) actions.push(['Activar cámara', 'btn-foil', startCamera]);
+  actions.push([secure ? 'O sube una foto' : 'Subir una foto', 'btn-outline', () => $('fileInput').click()]);
+  setStatus(extraMsg || (secure
+    ? 'Pruébatelo en vivo con la cámara, o sube una foto tuya.'
+    : 'La cámara requiere una conexión segura (https) — sube una foto para probarte el sombrero.'), { actions });
+}
+
+/* ---------- MediaPipe ---------- */
+let initPromise = initLandmarker();
+async function initLandmarker() {
+  const vision = await FilesetResolver.forVisionTasks(WASM_BASE);
+  const opts = delegate => ({
+    baseOptions: { modelAssetPath: MODEL_URL, delegate },
+    runningMode: 'VIDEO', numFaces: 1,
+    outputFacialTransformationMatrixes: false, outputFaceBlendshapes: false,
+  });
+  try { landmarker = await FaceLandmarker.createFromOptions(vision, opts('GPU')); }
+  catch { landmarker = await FaceLandmarker.createFromOptions(vision, opts('CPU')); }
+  landmarkerMode = 'VIDEO';
+}
+async function ensureMode(m) {
+  await initPromise;
+  if (landmarkerMode !== m) { await landmarker.setOptions({ runningMode: m }); landmarkerMode = m; }
+}
+
+/* ---------- Anclaje del sombrero ---------- */
+const lerp = (a, b, t) => a + (b - a) * t;
+const lerpAngle = (a, b, t) => a + Math.atan2(Math.sin(b - a), Math.cos(b - a)) * t;
+
+// Devuelve la colocación {x,y,w,rot} a partir de los landmarks (coords de canvas)
+function poseFromLandmarks(lm, W, H) {
+  const L = { x: lm[234].x * W, y: lm[234].y * H };
+  const R = { x: lm[454].x * W, y: lm[454].y * H };
+  const forehead = { x: lm[10].x * W, y: lm[10].y * H };
+  const faceW = Math.hypot(R.x - L.x, R.y - L.y);
+  const rot = Math.atan2(R.y - L.y, R.x - L.x);
+  const cal = HATS[currentHat];
+  const up = { x: Math.sin(rot), y: -Math.cos(rot) };
+  return {
+    x: forehead.x + up.x * cal.offsetY * faceW,
+    y: forehead.y + up.y * cal.offsetY * faceW,
+    w: faceW * cal.scale,
+    rot,
+    faceW, forehead, L, R,          // extras para el modo debug
+  };
+}
+
+function drawHatAt(ctx, pose) {
+  const img = hatImgs[currentHat];
+  if (!img || !img.complete || !pose) return;
+  const cal = HATS[currentHat];
+  const w = pose.w, h = w * (img.naturalHeight / img.naturalWidth);
+  ctx.save();
+  ctx.translate(pose.x, pose.y);
+  ctx.rotate(pose.rot);
+  ctx.drawImage(img, -cal.anchorX * w, -cal.anchorY * h, w, h);
+  ctx.restore();
+}
+
+function drawDebug(ctx, pose) {
+  if (!DEBUG || !pose || !pose.forehead) return;
+  ctx.save();
+  ctx.fillStyle = '#E0447F';
+  for (const p of [pose.L, pose.R, pose.forehead]) { ctx.beginPath(); ctx.arc(p.x, p.y, 5, 0, 7); ctx.fill(); }
+  ctx.strokeStyle = '#E0447F'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(pose.L.x, pose.L.y); ctx.lineTo(pose.R.x, pose.R.y); ctx.stroke();
+  ctx.fillStyle = '#C6A15B';
+  ctx.beginPath(); ctx.arc(pose.x, pose.y, 6, 0, 7); ctx.fill();
+  ctx.restore();
+}
+
+/* ---------- Modo cámara ---------- */
+async function startCamera() {
+  setStatus('Cargando el probador…', { spinner: true });
+  try { await initPromise; }
+  catch (e) { console.error(e); setStatus('No se pudo cargar el detector facial. Revisa la conexión.', { actions: [['Reintentar', 'btn-foil', retryInit]] }); return; }
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false,
+    });
+  } catch (e) {
+    const msg = e.name === 'NotAllowedError' ? 'Permiso de cámara denegado. Puedes probarte el sombrero subiendo una foto.'
+      : e.name === 'NotFoundError' ? 'No se encontró ninguna cámara. Sube una foto para probarte el sombrero.'
+      : 'No se pudo abrir la cámara (¿la está usando otra app?). Sube una foto para probarte el sombrero.';
+    setStatus(msg, { actions: [['Subir una foto', 'btn-foil', () => $('fileInput').click()]] });
+    return;
+  }
+  await ensureMode('VIDEO');
+  photoCanvas.hidden = true; $('manual').hidden = true; $('backCamBtn').hidden = true;
+  video.hidden = false; overlay.hidden = false;
+  video.srcObject = stream;
+  try { await video.play(); } catch {}
+  mode = 'live';
+  smooth.init = false; lastVideoTime = -1; faceSeenAt = performance.now();
+  $('shootBtn').disabled = false;
+  setStatus(null); setToast(null);
+  rafId = requestAnimationFrame(liveLoop);
+}
+
+function liveLoop() {
+  if (mode !== 'live') return;
+  if (video.videoWidth && (overlay.width !== video.videoWidth || overlay.height !== video.videoHeight)) {
+    overlay.width = video.videoWidth; overlay.height = video.videoHeight;
+  }
+  if (video.currentTime !== lastVideoTime && video.videoWidth) {
+    lastVideoTime = video.currentTime;
+    let res = null;
+    try { res = landmarker.detectForVideo(video, performance.now()); } catch {}
+    octx.clearRect(0, 0, overlay.width, overlay.height);
+    if (res && res.faceLandmarks.length) {
+      faceSeenAt = performance.now();
+      setToast(null);
+      const t = poseFromLandmarks(res.faceLandmarks[0], overlay.width, overlay.height);
+      if (!smooth.init) { Object.assign(smooth, { x: t.x, y: t.y, w: t.w, rot: t.rot, init: true }); }
+      smooth.x = lerp(smooth.x, t.x, LERP); smooth.y = lerp(smooth.y, t.y, LERP);
+      smooth.w = lerp(smooth.w, t.w, LERP); smooth.rot = lerpAngle(smooth.rot, t.rot, LERP);
+      drawHatAt(octx, { x: smooth.x, y: smooth.y, w: smooth.w, rot: smooth.rot });
+      drawDebug(octx, t);
+    } else {
+      smooth.init = false;
+      if (performance.now() - faceSeenAt > 1000) setToast('No te veo — acércate un poco más');
+    }
+  }
+  rafId = requestAnimationFrame(liveLoop);
+}
+
+function stopCamera() {
+  if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+  if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+  video.srcObject = null;
+  video.hidden = true; overlay.hidden = true;
+  setToast(null);
+}
+
+function retryInit() {
+  initPromise = initLandmarker();
+  showStart();
+}
+
+/* ---------- Modo foto ---------- */
+$('uploadBtn').addEventListener('click', () => $('fileInput').click());
+$('backCamBtn').addEventListener('click', () => { photoImg = null; startCamera(); });
+
+$('fileInput').addEventListener('change', async e => {
+  const file = e.target.files[0];
+  e.target.value = '';
+  if (!file) return;
+  if (mode === 'live') stopCamera();
+  mode = 'photo';
+  setStatus('Buscando tu cara en la foto…', { spinner: true });
+  const img = new Image();
+  const url = URL.createObjectURL(file);
+  try {
+    await new Promise((ok, bad) => { img.onload = ok; img.onerror = bad; img.src = url; });
+  } catch { setStatus('No se pudo leer esa imagen.', { actions: [['Probar otra', 'btn-foil', () => $('fileInput').click()]] }); return; }
+  const MAX = 1600;
+  const k = Math.min(1, MAX / Math.max(img.naturalWidth, img.naturalHeight));
+  photoImg = document.createElement('canvas');
+  photoImg.width = Math.round(img.naturalWidth * k);
+  photoImg.height = Math.round(img.naturalHeight * k);
+  photoImg.getContext('2d').drawImage(img, 0, 0, photoImg.width, photoImg.height);
+  URL.revokeObjectURL(url);
+
+  photoCanvas.width = photoImg.width; photoCanvas.height = photoImg.height;
+  photoCanvas.hidden = false; video.hidden = true; overlay.hidden = true;
+  $('backCamBtn').hidden = !secure;
+  $('manual').hidden = false;
+  Object.assign(manual, { dx: 0, dy: 0, scale: 1, rot: 0 });
+  $('manualScale').value = 1;
+
+  photoPose = null;
+  try {
+    await ensureMode('IMAGE');
+    const res = landmarker.detect(photoImg);
+    if (res.faceLandmarks.length) {
+      photoPose = poseFromLandmarks(res.faceLandmarks[0], photoCanvas.width, photoCanvas.height);
+    }
+  } catch (err) { console.error(err); }
+
+  $('shootBtn').disabled = false;
+  setStatus(null);
+  setToast(photoPose ? null : 'No detecté una cara — coloca el sombrero con el dedo');
+  renderPhoto();
+});
+
+function currentPhotoPose() {
+  const base = photoPose || {
+    x: photoCanvas.width / 2, y: photoCanvas.height * 0.3,
+    w: photoCanvas.width * 0.5, rot: 0,
+  };
+  return { x: base.x + manual.dx, y: base.y + manual.dy, w: base.w * manual.scale, rot: base.rot + manual.rot,
+           forehead: base.forehead, L: base.L, R: base.R };
+}
+
+function renderPhoto() {
+  if (mode !== 'photo' || !photoImg) return;
+  pctx.clearRect(0, 0, photoCanvas.width, photoCanvas.height);
+  pctx.drawImage(photoImg, 0, 0);
+  const pose = currentPhotoPose();
+  drawHatAt(pctx, pose);
+  drawDebug(pctx, pose);
+}
+
+/* Ajuste manual: arrastrar / pellizcar sobre la foto */
+const pointers = new Map();
+let pinchStart = null;
+photoCanvas.addEventListener('pointerdown', e => {
+  photoCanvas.setPointerCapture(e.pointerId);
+  pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (pointers.size === 2) {
+    const [a, b] = [...pointers.values()];
+    pinchStart = { d: Math.hypot(b.x - a.x, b.y - a.y), ang: Math.atan2(b.y - a.y, b.x - a.x), scale: manual.scale, rot: manual.rot };
+  }
+});
+photoCanvas.addEventListener('pointermove', e => {
+  if (!pointers.has(e.pointerId) || mode !== 'photo') return;
+  const prev = pointers.get(e.pointerId);
+  const k = photoCanvas.width / photoCanvas.getBoundingClientRect().width;
+  if (pointers.size === 1) {
+    manual.dx += (e.clientX - prev.x) * k;
+    manual.dy += (e.clientY - prev.y) * k;
+  }
+  pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (pointers.size === 2 && pinchStart) {
+    const [a, b] = [...pointers.values()];
+    const d = Math.hypot(b.x - a.x, b.y - a.y), ang = Math.atan2(b.y - a.y, b.x - a.x);
+    manual.scale = Math.min(2.2, Math.max(0.4, pinchStart.scale * d / pinchStart.d));
+    manual.rot = pinchStart.rot + (ang - pinchStart.ang);
+    $('manualScale').value = manual.scale;
+  }
+  renderPhoto();
+});
+const endPointer = e => { pointers.delete(e.pointerId); if (pointers.size < 2) pinchStart = null; };
+photoCanvas.addEventListener('pointerup', endPointer);
+photoCanvas.addEventListener('pointercancel', endPointer);
+
+$('manualScale').addEventListener('input', e => { manual.scale = +e.target.value; renderPhoto(); });
+$('manualReset').addEventListener('click', () => {
+  Object.assign(manual, { dx: 0, dy: 0, scale: 1, rot: 0 });
+  $('manualScale').value = 1;
+  renderPhoto();
+});
+
+/* ---------- Captura ---------- */
+$('shootBtn').addEventListener('click', async () => {
+  let out;
+  if (mode === 'photo' && photoImg) {
+    out = photoCanvas;
+  } else if (mode === 'live' && video.videoWidth) {
+    out = document.createElement('canvas');
+    out.width = video.videoWidth; out.height = video.videoHeight;
+    const ctx = out.getContext('2d');
+    ctx.translate(out.width, 0); ctx.scale(-1, 1);      // captura espejada = lo que ves
+    ctx.drawImage(video, 0, 0);
+    drawHatAt(ctx, { x: smooth.x, y: smooth.y, w: smooth.w, rot: smooth.rot });
+  } else return;
+
+  const blob = await new Promise(r => out.toBlob(r, 'image/png'));
+  const file = new File([blob], `rhinestone-row-${currentHat}.png`, { type: 'image/png' });
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    try { await navigator.share({ files: [file] }); return; } catch {}
+  }
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = file.name;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+});
+
+/* ---------- Selector de sombrero ---------- */
+function selectHat(key) {
+  currentHat = key;
+  smooth.init = false;
+  for (const el of document.querySelectorAll('.hat-thumb')) el.classList.toggle('active', el.dataset.hat === key);
+  $('hatSub').textContent = HATS[key].sub;
+  $('hatName').textContent = HATS[key].name;
+  $('hatPrice').textContent = HATS[key].price;
+  if (DEBUG) syncDebug();
+  renderPhoto();
+}
+
+const picker = $('picker');
+for (const [key, hat] of Object.entries(HATS)) {
+  const b = document.createElement('button');
+  b.className = 'hat-thumb'; b.dataset.hat = key; b.title = hat.name;
+  const img = document.createElement('img');
+  img.src = hat.src; img.alt = hat.name;
+  b.appendChild(img);
+  b.addEventListener('click', () => selectHat(key));
+  picker.appendChild(b);
+  const pre = new Image(); pre.src = hat.src;      // precarga
+  hatImgs[key] = pre;
+  pre.onload = () => renderPhoto();
+}
+
+/* ---------- Debug (?debug=1) ---------- */
+let debugInputs = null;
+if (DEBUG) {
+  const panel = document.createElement('div');
+  panel.className = 'debug';
+  panel.innerHTML = `<strong style="color:var(--text-primary)">Calibración</strong>`;
+  debugInputs = {};
+  for (const [k, min, max, step] of [['scale', 1, 3.2, 0.01], ['anchorX', 0.2, 0.8, 0.005], ['anchorY', 0.2, 1, 0.005], ['offsetY', -0.3, 0.7, 0.005]]) {
+    const lab = document.createElement('label');
+    lab.innerHTML = `<span>${k}</span>`;
+    const inp = document.createElement('input');
+    Object.assign(inp, { type: 'range', min, max, step });
+    inp.addEventListener('input', () => { HATS[currentHat][k] = +inp.value; syncDebugPre(); renderPhoto(); });
+    lab.appendChild(inp); panel.appendChild(lab);
+    debugInputs[k] = inp;
+  }
+  const pre = document.createElement('pre');
+  pre.id = 'debugPre';
+  panel.appendChild(pre);
+  document.body.appendChild(panel);
+}
+function syncDebug() {
+  if (!debugInputs) return;
+  for (const k of ['scale', 'anchorX', 'anchorY', 'offsetY']) debugInputs[k].value = HATS[currentHat][k];
+  syncDebugPre();
+}
+function syncDebugPre() {
+  const c = HATS[currentHat];
+  $('debugPre').textContent = `'${currentHat}': { scale: ${c.scale}, anchorX: ${c.anchorX}, anchorY: ${c.anchorY}, offsetY: ${c.offsetY} }`;
+}
+
+/* ---------- Ciclo de vida ---------- */
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden && mode === 'live') { stopCamera(); showStart(); }
+});
+window.addEventListener('pagehide', () => { if (mode === 'live') stopCamera(); });
+
+/* ---------- Arranque ---------- */
+const wanted = new URLSearchParams(location.search).get('hat');
+selectHat(HATS[wanted] ? wanted : 'felt-rust');
+if (DEBUG) syncDebug();
+showStart();
+initPromise.catch(e => { console.error(e); if (mode === 'idle') setStatus('No se pudo cargar el detector facial. Revisa la conexión.', { actions: [['Reintentar', 'btn-foil', retryInit]] }); });
+</script>
+
+</body>
+</html>
