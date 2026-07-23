@@ -80,6 +80,13 @@
 /* ---------- Controls ---------- */
 .controls{display:flex;gap:12px;flex-wrap:wrap}
 .ai-note{color:var(--text-tertiary);font-size:10px}
+.empty-state{display:flex;flex-direction:column;align-items:center;text-align:center;gap:16px;padding:72px 24px;border:1px solid var(--border-subtle);border-radius:var(--radius-2);background:var(--surface-raised)}
+.empty-state[hidden]{display:none}
+.empty-state h2{font-family:var(--font-display);font-size:28px;color:var(--pearl)}
+.empty-state p{font-family:var(--font-ui);color:var(--text-secondary);font-size:var(--type-body);max-width:420px;margin:0}
+.empty-state .btn{margin-top:6px;text-decoration:none}
+#tryonBody[hidden]{display:none}
+.ai-disclosure{font-family:var(--font-ui);font-size:var(--type-small);color:var(--text-tertiary);max-width:640px;line-height:1.5;margin:0}
 
 @media (max-width:760px){
   .nav-links{display:none}
@@ -112,6 +119,14 @@
     <p id="headDek">Take a photo, pick a hat, and our AI puts it on you — the real thing, in seconds. Nothing leaves your device until you generate.</p>
   </header>
 
+  <div class="empty-state" id="emptyState" hidden>
+    <span class="status-spark">✦</span>
+    <h2>Pick a hat to see it on you.</h2>
+    <p>Head to the catalog, tap ✓ on the ones that catch your eye, and we'll put them on you right here.</p>
+    <a class="btn btn-foil" href="catalogo.html">Browse the catalog →</a>
+  </div>
+
+  <div id="tryonBody" hidden>
   <div class="picker" id="picker"></div>
   <div class="picker-meta">
     <span class="picker-name" id="hatName"></span>
@@ -153,7 +168,8 @@
     <button class="btn btn-outline" id="aiRetry" hidden>Try another</button>
     <input type="file" id="fileInput" accept="image/*" hidden>
   </div>
-  <span class="rr-caps ai-note">AI-generated · results may vary</span>
+  <p class="ai-disclosure">Fair warning — this is AI having a go, not a mirror. It catches the shape, the color, the swagger, but the odd stitch or concho might wander off. It's here so you can picture yourself in it, not count the threads. The real hat always wears better.</p>
+  </div>
 </section>
 
 <footer>
@@ -194,7 +210,7 @@ const aiResult = $('aiResult'), aiLoader = $('aiLoader'), aiPlaceholder = $('aiP
 let mode = 'idle';                 // idle | live | photo
 let stream = null;
 let photoImg = null;               // canvas with the uploaded photo
-let hats = FEATURED, current = FEATURED[0], catalogMode = false;
+let hats = [], current = null, catalogMode = false;
 let aiResultUrl = null, aiPhraseTimer = null;
 const secure = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
 
@@ -382,7 +398,7 @@ $('aiDownload').addEventListener('click', async () => {
 /* ---------- Catalog selection (from the catalog page) ---------- */
 function initCatalogSelection() {
   const wanted = new URLSearchParams(location.search).get('hat');
-  if (FEATURED.some(h => h.id === wanted)) { current = FEATURED.find(h => h.id === wanted); return; }
+  if (FEATURED.some(h => h.id === wanted)) { hats = FEATURED; current = FEATURED.find(h => h.id === wanted); return; }
   let sel = [];
   try { sel = JSON.parse(sessionStorage.getItem('rr_tryon_selection') || '[]'); } catch {}
   sel = (sel || []).filter(x => x && x.image);
@@ -410,8 +426,13 @@ function initCatalogSelection() {
 
 /* ---------- Boot ---------- */
 initCatalogSelection();
-renderPicker();
-showStart();
+if (hats.length) {
+  $('tryonBody').hidden = false;
+  renderPicker();
+  showStart();
+} else {
+  $('emptyState').hidden = false;   // no hats picked yet → prompt to choose a reference
+}
 </script>
 
 </body>

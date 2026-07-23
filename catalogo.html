@@ -93,6 +93,10 @@
   .nav-links{display:none}
   .nav-cat-mobile{display:inline-flex}
   .selbar-thumbs{display:none}
+  /* filters become a single horizontal-scroll row so they never wall off the grid */
+  .chips{flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;padding:12px 32px;margin:0 -32px;gap:8px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .chips::-webkit-scrollbar{display:none}
+  .chip{flex:0 0 auto}
 }
 @media (max-width:480px){.grid{grid-template-columns:1fr}}
 </style>
