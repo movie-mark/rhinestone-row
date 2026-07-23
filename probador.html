@@ -97,6 +97,16 @@
 .ai-actions{display:flex;flex-direction:column;gap:10px}
 .ai-actions .btn{width:100%}
 .ai-note{color:var(--text-tertiary);font-size:10px;margin-top:4px}
+.ai-picker{display:flex;gap:10px;flex-wrap:wrap}
+.ai-picker[hidden]{display:none}
+.ai-hat{position:relative;background:#fff;border:1px solid var(--border-subtle);border-radius:var(--radius-1);cursor:pointer;width:76px;height:76px;display:flex;align-items:center;justify-content:center;overflow:hidden;transition:border-color var(--dur-fast) var(--ease-out)}
+.ai-hat img{width:100%;height:100%;object-fit:cover}
+.ai-hat:hover{border-color:var(--border-strong)}
+.ai-hat.active{border-color:var(--champagne);box-shadow:var(--shadow-foil-glow)}
+.ai-hat-name{font-family:var(--font-ui);font-size:var(--type-small);color:var(--text-secondary);align-self:center;margin-left:4px}
+.ai-catalog-exit{background:none;border:none;color:var(--text-tertiary);font-family:var(--font-ui);font-size:var(--type-small);cursor:pointer;text-decoration:underline;padding:0}
+.ai-catalog-exit:hover{color:var(--text-secondary)}
+.hat-picker[hidden],.hat-info[hidden]{display:none}
 
 /* ---------- Debug ---------- */
 .debug{position:fixed;right:16px;bottom:16px;z-index:20;background:var(--surface-overlay);border:1px solid var(--border-strong);border-radius:var(--radius-2);box-shadow:var(--shadow-overlay);padding:16px;display:flex;flex-direction:column;gap:8px;width:260px;font-family:var(--font-ui);font-size:12px;color:var(--text-secondary)}
@@ -182,9 +192,10 @@
 <section class="aitryon wrap">
   <div class="tryon-head">
     <span class="rr-caps"><span class="spark">✦</span> El probador con IA</span>
-    <h2>¿Y en la vida real?</h2>
-    <p>Nuestra IA toma tu foto de arriba (cámara o la que subiste) y el sombrero elegido, y genera una imagen realista tuya con él puesto. Tarda unos segundos.</p>
+    <h2 id="aiHeadTitle">¿Y en la vida real?</h2>
+    <p id="aiHeadDek">Nuestra IA toma tu foto de arriba (cámara o la que subiste) y el sombrero elegido, y genera una imagen realista tuya con él puesto. Tarda unos segundos.</p>
   </div>
+  <div class="ai-picker" id="aiPicker" hidden></div>
   <div class="ai-main">
     <div class="ai-stage" id="aiStage">
       <img id="aiResult" hidden alt="Tu look generado con IA">
@@ -253,6 +264,9 @@ let stream = null, rafId = null, lastVideoTime = -1, faceSeenAt = 0;
 const hatImgs = {};              // key -> HTMLImageElement (precargados)
 let photoImg = null;             // canvas base con la foto subida
 let photoPose = null;            // colocación detectada en la foto {x,y,w,rot} o null
+let catalogMode = false;         // true si llegamos con una selección del catálogo (solo IA)
+let catalogHats = [];            // [{ref,name,material,image,category,url}]
+let currentCatalogHat = null;
 const manual = { dx: 0, dy: 0, scale: 1, rot: 0 };            // ajuste manual en modo foto
 const liveManual = { dx: 0, dy: 0, scale: 1 };                // ajuste manual en modo cámara (dx/dy en fracciones de ancho de cara)
 const smooth = { x: 0, y: 0, w: 0, rot: 0, init: false };
@@ -412,13 +426,15 @@ function liveLoop() {
       if (!smooth.init) { Object.assign(smooth, { x: t.x, y: t.y, w: t.w, rot: t.rot, init: true }); }
       smooth.x = lerp(smooth.x, t.x, LERP); smooth.y = lerp(smooth.y, t.y, LERP);
       smooth.w = lerp(smooth.w, t.w, LERP); smooth.rot = lerpAngle(smooth.rot, t.rot, LERP);
-      const fw = liveFaceW();
-      drawHatAt(octx, {
-        x: smooth.x + liveManual.dx * fw,
-        y: smooth.y + liveManual.dy * fw,
-        w: smooth.w * liveManual.scale,
-        rot: smooth.rot,
-      });
+      if (!catalogMode) {
+        const fw = liveFaceW();
+        drawHatAt(octx, {
+          x: smooth.x + liveManual.dx * fw,
+          y: smooth.y + liveManual.dy * fw,
+          w: smooth.w * liveManual.scale,
+          rot: smooth.rot,
+        });
+      }
       drawDebug(octx, t);
     } else {
       smooth.init = false;
@@ -500,6 +516,7 @@ function renderPhoto() {
   if (mode !== 'photo' || !photoImg) return;
   pctx.clearRect(0, 0, photoCanvas.width, photoCanvas.height);
   pctx.drawImage(photoImg, 0, 0);
+  if (catalogMode) return;                 // sin overlay AR para sombreros del catálogo
   const pose = currentPhotoPose();
   drawHatAt(pctx, pose);
   drawDebug(pctx, pose);
@@ -680,10 +697,13 @@ async function generateAI() {
   $('aiDownload').hidden = true; $('aiRetry').hidden = true; $('aiGenerate').disabled = true;
   aiLoaderOn(true);
 
+  const hatPayload = catalogMode
+    ? { hatImageUrl: currentCatalogHat.image }
+    : { hat: currentHat };
   try {
     const r = await fetch('/api/tryon', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ personImage, hat: currentHat, aspect }),
+      body: JSON.stringify({ personImage, ...hatPayload, aspect }),
     });
     const data = await r.json().catch(() => ({}));
     if (!r.ok || !data.url) {
@@ -711,7 +731,8 @@ $('aiDownload').addEventListener('click', async () => {
   try {
     const resp = await fetch(aiResultUrl);
     const blob = await resp.blob();
-    const file = new File([blob], `rhinestone-row-${currentHat}-ia.jpg`, { type: blob.type || 'image/jpeg' });
+    const slug = (catalogMode ? (currentCatalogHat.ref || currentCatalogHat.name) : currentHat).toString().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    const file = new File([blob], `rhinestone-row-${slug}-ia.jpg`, { type: blob.type || 'image/jpeg' });
     if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file] }); return; }
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob); a.download = file.name; a.click();
@@ -776,6 +797,48 @@ function syncDebugPre() {
   $('debugPre').textContent = `'${currentHat}': { scale: ${c.scale}, anchorX: ${c.anchorX}, anchorY: ${c.anchorY}, offsetY: ${c.offsetY} }`;
 }
 
+/* ---------- Modo catálogo (selección traída del catálogo) ---------- */
+function selectCatalogHat(ref) {
+  currentCatalogHat = catalogHats.find(h => h.ref === ref) || catalogHats[0];
+  for (const el of document.querySelectorAll('.ai-hat')) el.classList.toggle('active', el.dataset.ref === currentCatalogHat.ref);
+  const nameEl = $('aiHatName'); if (nameEl) nameEl.textContent = currentCatalogHat.name || '';
+}
+function initCatalogMode() {
+  let sel = [];
+  try { sel = JSON.parse(sessionStorage.getItem('rr_tryon_selection') || '[]'); } catch {}
+  sel = (sel || []).filter(x => x && x.image);
+  if (!sel.length) return;
+  catalogMode = true;
+  catalogHats = sel;
+  currentCatalogHat = sel[0];
+
+  // Los sombreros del catálogo no tienen recorte PNG → sin AR: el visor de arriba
+  // sirve solo para tomarte la foto; la prueba se hace con IA abajo.
+  $('picker').hidden = true;
+  document.querySelector('.hat-info').hidden = true;
+  $('shootBtn').hidden = true;
+  $('manual').hidden = true;
+  document.querySelector('.tryon-head h1').textContent = 'Tómate una foto';
+  document.querySelector('.tryon-head p').textContent = 'Activa la cámara o sube una foto. Abajo eliges cuál de tus sombreros del catálogo probarte con IA.';
+
+  $('aiHeadTitle').textContent = 'Tu selección del catálogo';
+  $('aiHeadDek').innerHTML = `Elige uno de tus ${sel.length} sombrero${sel.length > 1 ? 's' : ''} y genera tu look. <button class="ai-catalog-exit" id="aiCatalogExit">Salir de la selección</button>`;
+  $('aiPlaceholderText').textContent = 'Activa la cámara o sube una foto arriba, elige un sombrero y pulsa “Generar con IA”.';
+
+  const esc = s => (s || '').toString().replace(/"/g, '&quot;');
+  const picker = $('aiPicker');
+  picker.hidden = false;
+  picker.innerHTML = sel.map(h =>
+    `<button class="ai-hat${h.ref === currentCatalogHat.ref ? ' active' : ''}" data-ref="${esc(h.ref)}" title="${esc(h.name)}"><img src="${esc(h.image)}" alt="${esc(h.name)}"></button>`
+  ).join('') + `<span class="ai-hat-name" id="aiHatName">${esc(currentCatalogHat.name)}</span>`;
+  picker.querySelectorAll('.ai-hat').forEach(b => b.addEventListener('click', () => selectCatalogHat(b.dataset.ref)));
+
+  $('aiCatalogExit').addEventListener('click', () => {
+    sessionStorage.removeItem('rr_tryon_selection');
+    location.href = 'probador.html';
+  });
+}
+
 /* ---------- Ciclo de vida ---------- */
 document.addEventListener('visibilitychange', () => {
   if (document.hidden && mode === 'live') { stopCamera(); showStart(); }
@@ -786,6 +849,7 @@ window.addEventListener('pagehide', () => { if (mode === 'live') stopCamera(); }
 const wanted = new URLSearchParams(location.search).get('hat');
 selectHat(HATS[wanted] ? wanted : 'felt-rust');
 if (DEBUG) syncDebug();
+if (!HATS[wanted]) initCatalogMode();   // ?hat= (destacado) tiene prioridad sobre la selección del catálogo
 showStart();
 initPromise.catch(e => { console.error(e); if (mode === 'idle') setStatus('No se pudo cargar el detector facial. Revisa la conexión.', { actions: [['Reintentar', 'btn-foil', retryInit]] }); });
 </script>
