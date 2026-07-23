@@ -1,6 +1,6 @@
-// Serverless (Vercel) — probador con IA. La clave de Fal vive SOLO aquí, nunca en el navegador.
-// Recibe la foto de la persona (data URI) + el sombrero elegido, llama a fal-ai/nano-banana-2/edit
-// y devuelve la URL de la imagen generada.
+// Serverless (Vercel) — AI try-on. The Fal key lives ONLY here, never in the browser.
+// Takes the person photo (data URI) + the chosen hat, calls fal-ai/nano-banana-2/edit
+// and returns the generated image URL.
 
 const HAT_FILES = {
   'felt-rust': 'hat-felt-rust.jpg',
@@ -11,7 +11,7 @@ const HAT_FILES = {
 
 const ASPECTS = new Set(['auto', '21:9', '16:9', '3:2', '4:3', '5:4', '1:1', '4:5', '3:4', '2:3', '9:16']);
 
-const PROMPT = 'Pon este sombrero en esta persona. Es EXTREMADAMENTE IMPORTANTE que NO CAMBIES NI LA PERSONA NI EL MODELO DEL SOMBRERO..... LOS DETALLES DEL SOMBRERO SON IMPORTANTISIMOS.';
+const PROMPT = 'Put this hat on this person. It is EXTREMELY IMPORTANT that you DO NOT CHANGE THE PERSON OR THE HAT MODEL..... THE DETAILS OF THE HAT ARE EXTREMELY IMPORTANT.';
 
 module.exports = async (req, res) => {
   if (req.method !== 'POST') { res.status(405).json({ error: 'method_not_allowed' }); return; }
@@ -19,7 +19,7 @@ module.exports = async (req, res) => {
   const FAL_KEY = process.env.FAL_KEY;
   if (!FAL_KEY) { res.status(503).json({ error: 'unconfigured' }); return; }
 
-  // Barrera ligera contra abuso: exigir que la petición venga del propio sitio.
+  // Light anti-abuse gate: require the request to come from our own site.
   const host = req.headers['x-forwarded-host'] || req.headers.host || '';
   const origin = req.headers.origin || req.headers.referer || '';
   if (host && origin && !origin.includes(host)) { res.status(403).json({ error: 'forbidden' }); return; }
@@ -32,8 +32,8 @@ module.exports = async (req, res) => {
   if (typeof personImage !== 'string' || !personImage.startsWith('data:image/')) { res.status(400).json({ error: 'bad_image' }); return; }
   if (personImage.length > 8_000_000) { res.status(413).json({ error: 'image_too_large' }); return; }
 
-  // El sombrero puede venir por key (destacados, servidos desde este sitio)
-  // o por URL del proveedor (catálogo) — restringida al dominio de Bullhide.
+  // The hat can arrive by key (featured, served from this site)
+  // or by supplier URL (catalog) — restricted to the Bullhide domain.
   const proto = (req.headers['x-forwarded-proto'] || 'https').split(',')[0];
   let hatUrl = null;
   if (HAT_FILES[hat]) {
@@ -44,7 +44,7 @@ module.exports = async (req, res) => {
       if (u.protocol === 'https:' && (u.hostname === 'bullhidehats.com' || u.hostname.endsWith('.bullhidehats.com'))) {
         hatUrl = u.href;
       }
-    } catch { /* url inválida */ }
+    } catch { /* invalid url */ }
   }
   if (!hatUrl) { res.status(400).json({ error: 'bad_hat' }); return; }
 

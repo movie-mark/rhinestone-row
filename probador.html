@@ -1,15 +1,15 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>El probador — Rhinestone Row</title>
+<title>Try-On — Rhinestone Row</title>
 <link rel="stylesheet" href="styles.css">
 <style>
 /* ---------- Page layout ---------- */
 .wrap{max-width:1200px;margin:0 auto;padding:0 32px}
 
-/* ---------- Nav (igual que index) ---------- */
+/* ---------- Nav ---------- */
 .nav{position:fixed;top:0;left:0;right:0;z-index:10;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);background:rgba(20,18,28,.55);border-bottom:1px solid var(--border-subtle)}
 .nav-inner{display:flex;align-items:center;justify-content:space-between;height:64px}
 .nav-logo{font-family:var(--font-display);font-size:20px;color:var(--text-primary);letter-spacing:.01em}
@@ -20,8 +20,11 @@
 .nav-links a.active{color:var(--champagne)}
 .nav-cat-mobile{display:none;font-family:var(--font-ui);font-size:var(--type-small);font-weight:var(--weight-ui-semibold);letter-spacing:.02em;color:var(--champagne);border:1px solid var(--border-foil);padding:8px 16px}
 .nav-cat-mobile:hover{opacity:1;color:var(--champagne)}
+.nav-tryon{white-space:nowrap}
+.nav-badge{min-width:19px;height:19px;padding:0 5px;border-radius:var(--radius-pill);background:var(--champagne);color:var(--ink);font-family:var(--font-ui);font-size:11px;font-weight:var(--weight-ui-semibold);line-height:1;vertical-align:middle;margin-left:2px;display:none;align-items:center;justify-content:center}
+.nav-tryon.has-picks .nav-badge{display:inline-flex}
 
-/* ---------- Buttons (igual que index) ---------- */
+/* ---------- Buttons ---------- */
 .btn{font-family:var(--font-ui);font-weight:var(--weight-ui-semibold);letter-spacing:.02em;cursor:pointer;border:1px solid transparent;border-radius:var(--radius-0);display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:15px 30px;font-size:14px;transition:background var(--dur-fast) var(--ease-out),color var(--dur-fast) var(--ease-out),border-color var(--dur-fast) var(--ease-out)}
 .btn-foil{background:var(--champagne);color:var(--ink)}
 .btn-foil:hover{background:var(--champagne-bright);opacity:1;color:var(--ink)}
@@ -30,103 +33,71 @@
 .btn[disabled]{opacity:.4;pointer-events:none}
 .btn[hidden]{display:none}
 
-/* ---------- Probador ---------- */
-.tryon{padding-top:120px;padding-bottom:80px;display:flex;flex-direction:column;gap:24px}
-.tryon-head{display:flex;flex-direction:column;gap:10px;max-width:560px}
+/* ---------- Try-On ---------- */
+.tryon{padding-top:120px;padding-bottom:80px;display:flex;flex-direction:column;gap:26px}
+.tryon-head{display:flex;flex-direction:column;gap:10px;max-width:600px}
 .tryon-head .rr-caps{color:var(--champagne);display:flex;align-items:center;gap:10px}
 .tryon-head .spark{color:var(--fuchsia);font-size:13px}
-.tryon-head h1,.tryon-head h2{font-size:var(--type-title);color:var(--pearl)}
+.tryon-head h1{font-size:var(--type-title);color:var(--pearl)}
 .tryon-head p{font-family:var(--font-ui);font-size:var(--type-body);color:var(--text-secondary);margin:0}
 
-.tryon-main{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:28px;align-items:start}
+/* ---------- Hat picker ---------- */
+.picker{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.hat-thumb{position:relative;background:var(--surface-raised);border:1px solid var(--border-subtle);border-radius:var(--radius-1);cursor:pointer;width:82px;height:82px;display:flex;align-items:center;justify-content:center;overflow:hidden;padding:6px;transition:border-color var(--dur-fast) var(--ease-out)}
+.hat-thumb.catalog{background:#fff;padding:0}
+.hat-thumb img{max-width:100%;max-height:100%;object-fit:contain}
+.hat-thumb.catalog img{width:100%;height:100%;object-fit:cover}
+.hat-thumb:hover{border-color:var(--border-strong)}
+.hat-thumb.active{border-color:var(--champagne);box-shadow:var(--shadow-foil-glow)}
+.picker-meta{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;min-height:22px}
+.picker-name{font-family:var(--font-display);font-size:20px;color:var(--pearl)}
+.picker-price{font-family:var(--font-display);font-size:15px;color:var(--text-accent)}
+.picker-exit{background:none;border:none;color:var(--text-tertiary);font-family:var(--font-ui);font-size:var(--type-small);cursor:pointer;text-decoration:underline;padding:0}
+.picker-exit:hover{color:var(--text-secondary)}
+.picker-exit[hidden]{display:none}
 
-.stage{position:relative;background:#0B0910;border:1px solid var(--border-foil);border-radius:var(--radius-2);overflow:hidden;aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;touch-action:none}
+/* ---------- Stages ---------- */
+.stages{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.stage{position:relative;background:#0B0910;border:1px solid var(--border-foil);border-radius:var(--radius-2);overflow:hidden;aspect-ratio:4/5;display:flex;align-items:center;justify-content:center}
 .stage video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
-.stage #overlay{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1);pointer-events:none}
-.stage #photoCanvas{max-width:100%;max-height:100%;touch-action:none;cursor:grab}
+.stage canvas{max-width:100%;max-height:100%;object-fit:contain}
+.stage img{max-width:100%;max-height:100%;object-fit:contain;display:block}
 .stage [hidden]{display:none}
-
-.stage-status{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;text-align:center;background:var(--scrim);padding:32px;z-index:2}
-.stage-status[hidden]{display:none}
-.stage-status .status-spark{font-family:var(--font-display);font-size:44px;color:var(--champagne);line-height:1}
-.stage-status .status-spark.pulse{animation:pulse 1.2s var(--ease-in-out) infinite}
+.stage-label{position:absolute;top:12px;left:12px;z-index:3;color:var(--text-tertiary);background:rgba(11,9,16,.6);padding:4px 10px;border-radius:var(--radius-pill)}
+.stage-status,.stage-placeholder,.stage-loader{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;text-align:center;padding:28px;z-index:2}
+.stage-status,.stage-loader{background:var(--scrim)}
+.stage-status[hidden],.stage-placeholder[hidden],.stage-loader[hidden],.stage img[hidden]{display:none}
+.status-spark{font-family:var(--font-display);font-size:42px;color:var(--champagne);line-height:1}
+.status-spark.pulse{animation:pulse 1.2s var(--ease-in-out) infinite}
 @keyframes pulse{0%,100%{opacity:.35}50%{opacity:1}}
-.stage-status p{font-family:var(--font-ui);color:var(--text-primary);font-size:var(--type-body);max-width:380px;margin:0}
-.stage-status .status-actions{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
-
-.stage-toast{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);background:rgba(20,18,28,.82);border:1px solid var(--border-subtle);color:var(--text-primary);font-family:var(--font-ui);font-size:var(--type-small);padding:10px 18px;border-radius:var(--radius-1);z-index:2;white-space:nowrap}
+.stage-status p,.stage-placeholder p{font-family:var(--font-ui);color:var(--text-primary);font-size:var(--type-body);max-width:320px;margin:0}
+.stage-placeholder p{color:var(--text-secondary)}
+.stage-loader p{font-family:var(--font-display);font-style:italic;color:var(--text-primary);font-size:22px;letter-spacing:.01em;max-width:320px;margin:0}
+.status-actions{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+.stage-toast{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);background:rgba(20,18,28,.82);border:1px solid var(--border-subtle);color:var(--text-primary);font-family:var(--font-ui);font-size:var(--type-small);padding:9px 16px;border-radius:var(--radius-1);z-index:3;white-space:nowrap}
 .stage-toast[hidden]{display:none}
 
-/* ---------- Panel lateral ---------- */
-.panel{display:flex;flex-direction:column;gap:20px}
-.hat-picker{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
-.hat-thumb{background:var(--surface-raised);border:1px solid var(--border-subtle);border-radius:var(--radius-1);cursor:pointer;padding:8px;display:flex;align-items:center;justify-content:center;aspect-ratio:1;transition:border-color var(--dur-fast) var(--ease-out)}
-.hat-thumb img{max-width:100%;max-height:100%;object-fit:contain}
-.hat-thumb:hover{border-color:var(--border-strong)}
-.hat-thumb.active{border-color:var(--border-foil);background:rgba(198,161,91,.08)}
+/* ---------- Controls ---------- */
+.controls{display:flex;gap:12px;flex-wrap:wrap}
+.generate-block{display:flex;flex-direction:column;gap:13px}
+.ack{display:inline-flex;align-items:center;gap:9px;font-family:var(--font-ui);font-size:var(--type-small);color:var(--text-secondary);cursor:pointer;user-select:none;align-self:flex-start}
+.ack input{width:17px;height:17px;accent-color:var(--champagne);cursor:pointer;margin:0;flex:0 0 auto}
+.ai-note{color:var(--text-tertiary);font-size:10px}
+.empty-state{display:flex;flex-direction:column;align-items:center;text-align:center;gap:16px;padding:72px 24px;border:1px solid var(--border-subtle);border-radius:var(--radius-2);background:var(--surface-raised)}
+.empty-state[hidden]{display:none}
+.empty-state h2{font-family:var(--font-display);font-size:28px;color:var(--pearl)}
+.empty-state p{font-family:var(--font-ui);color:var(--text-secondary);font-size:var(--type-body);max-width:420px;margin:0}
+.empty-state .btn{margin-top:6px;text-decoration:none}
+#tryonBody{display:flex;flex-direction:column;gap:26px}
+#tryonBody[hidden]{display:none}
+.ai-disclosure{font-family:var(--font-display);font-style:italic;font-size:19px;color:var(--text-secondary);max-width:700px;line-height:1.55;margin:0;padding-top:26px;border-top:1px solid var(--border-subtle)}
 
-.hat-info{display:flex;flex-direction:column;gap:4px;border-top:1px solid var(--border-subtle);padding-top:16px}
-.hat-info .rr-caps{color:var(--text-tertiary)}
-.hat-info-name{font-family:var(--font-display);font-size:22px;color:var(--pearl)}
-.hat-info-price{font-family:var(--font-display);font-size:16px;color:var(--text-accent)}
-.hat-info a{font-family:var(--font-ui);font-size:var(--type-small);color:var(--text-secondary);margin-top:6px}
-.hat-info a:hover{color:var(--champagne);opacity:1}
-
-.controls{display:flex;flex-direction:column;gap:10px}
-.controls .btn{width:100%}
-
-.manual{display:flex;flex-direction:column;gap:8px;border-top:1px solid var(--border-subtle);padding-top:16px}
-.manual[hidden]{display:none}
-.manual label{font-family:var(--font-ui);font-size:var(--type-micro);letter-spacing:var(--tracking-caps);text-transform:uppercase;color:var(--text-tertiary)}
-.manual input[type=range]{width:100%;accent-color:var(--champagne)}
-.manual .manual-hint{font-family:var(--font-ui);font-size:var(--type-small);color:var(--text-tertiary)}
-.manual button{align-self:flex-start}
-
-/* ---------- Probador IA ---------- */
-.aitryon{padding-top:56px;padding-bottom:88px;display:flex;flex-direction:column;gap:24px;border-top:1px solid var(--border-subtle)}
-.ai-main{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:28px;align-items:start}
-.ai-stage{position:relative;background:#0B0910;border:1px solid var(--border-foil);border-radius:var(--radius-2);overflow:hidden;aspect-ratio:4/3;display:flex;align-items:center;justify-content:center}
-.ai-stage img{max-width:100%;max-height:100%;object-fit:contain;display:block}
-.ai-placeholder,.ai-loader{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;text-align:center;padding:32px}
-.ai-loader{background:var(--scrim)}
-.ai-placeholder[hidden],.ai-loader[hidden],.ai-stage img[hidden]{display:none}
-.ai-placeholder .status-spark,.ai-loader .status-spark{font-family:var(--font-display);font-size:44px;color:var(--champagne);line-height:1}
-.ai-placeholder .status-spark.pulse,.ai-loader .status-spark.pulse{animation:pulse 1.2s var(--ease-in-out) infinite}
-.ai-placeholder p{font-family:var(--font-ui);color:var(--text-secondary);font-size:var(--type-body);max-width:340px;margin:0}
-.ai-loader p{font-family:var(--font-display);font-style:italic;color:var(--text-primary);font-size:22px;letter-spacing:.01em;max-width:340px;margin:0}
-.ai-actions{display:flex;flex-direction:column;gap:10px}
-.ai-actions .btn{width:100%}
-.ai-note{color:var(--text-tertiary);font-size:10px;margin-top:4px}
-.ai-picker{display:flex;gap:10px;flex-wrap:wrap}
-.ai-picker[hidden]{display:none}
-.ai-hat{position:relative;background:#fff;border:1px solid var(--border-subtle);border-radius:var(--radius-1);cursor:pointer;width:76px;height:76px;display:flex;align-items:center;justify-content:center;overflow:hidden;transition:border-color var(--dur-fast) var(--ease-out)}
-.ai-hat img{width:100%;height:100%;object-fit:cover}
-.ai-hat:hover{border-color:var(--border-strong)}
-.ai-hat.active{border-color:var(--champagne);box-shadow:var(--shadow-foil-glow)}
-.ai-hat-name{font-family:var(--font-ui);font-size:var(--type-small);color:var(--text-secondary);align-self:center;margin-left:4px}
-.ai-catalog-exit{background:none;border:none;color:var(--text-tertiary);font-family:var(--font-ui);font-size:var(--type-small);cursor:pointer;text-decoration:underline;padding:0}
-.ai-catalog-exit:hover{color:var(--text-secondary)}
-.hat-picker[hidden],.hat-info[hidden]{display:none}
-
-/* ---------- Debug ---------- */
-.debug{position:fixed;right:16px;bottom:16px;z-index:20;background:var(--surface-overlay);border:1px solid var(--border-strong);border-radius:var(--radius-2);box-shadow:var(--shadow-overlay);padding:16px;display:flex;flex-direction:column;gap:8px;width:260px;font-family:var(--font-ui);font-size:12px;color:var(--text-secondary)}
-.debug label{display:flex;justify-content:space-between;gap:8px}
-.debug input[type=range]{width:130px;accent-color:var(--fuchsia)}
-.debug pre{margin:0;font-size:10px;color:var(--text-tertiary);white-space:pre-wrap;user-select:all}
-
-/* ---------- Responsive ---------- */
-@media (max-width:900px){
+@media (max-width:760px){
   .nav-links{display:none}
   .nav-cat-mobile{display:inline-flex}
   .tryon{padding-top:96px}
-  .tryon-main{grid-template-columns:1fr}
-  .stage{aspect-ratio:3/4}
-  .hat-picker{grid-template-columns:repeat(4,1fr)}
-  .ai-main{grid-template-columns:1fr}
-  .ai-stage{aspect-ratio:3/4}
-}
-@media (max-width:560px){
-  .controls{flex-direction:column}
+  .stages{grid-template-columns:1fr}
+  .controls .btn{flex:1}
 }
 </style>
 </head>
@@ -137,502 +108,88 @@
     <a href="index.html" class="nav-logo">Rhinestone Row</a>
     <div class="nav-links">
       <a href="index.html#edit">The edit</a>
-      <a href="catalogo.html">Catálogo</a>
-      <a href="probador.html" class="active">Probador</a>
+      <a href="catalogo.html">Catalog</a>
+      <a href="probador.html" class="active nav-tryon">Try-On <span class="nav-badge">0</span></a>
       <a href="index.html#curation">Curation</a>
     </div>
-    <a href="catalogo.html" class="nav-cat-mobile">Catálogo</a>
+    <a href="catalogo.html" class="nav-cat-mobile">Catalog</a>
   </div>
 </nav>
 
 <section class="tryon wrap">
-  <div class="tryon-head">
-    <span class="rr-caps"><span class="spark">✦</span> El probador</span>
-    <h1>Pruébatelo antes de decidir.</h1>
-    <p>Activa la cámara y el sombrero se ajusta solo a tu cabeza — o sube una foto y colócalo a mano. Todo pasa en tu navegador: ninguna imagen sale de tu dispositivo.</p>
+  <header class="tryon-head">
+    <span class="rr-caps"><span class="spark">✦</span> The fitting room</span>
+    <h1 id="headTitle">See yourself in it.</h1>
+    <p id="headDek">Take a photo, pick a hat, and our AI puts it on you — the real thing, in seconds. Nothing leaves your device until you generate.</p>
+  </header>
+
+  <div class="empty-state" id="emptyState" hidden>
+    <span class="status-spark">✦</span>
+    <h2>Pick a hat to see it on you.</h2>
+    <p>Head to the catalog, tap ✓ on the ones that catch your eye, and we'll put them on you right here.</p>
+    <a class="btn btn-foil" href="catalogo.html">Browse the catalog →</a>
   </div>
 
-  <div class="tryon-main">
-    <div class="stage" id="stage">
+  <div id="tryonBody" hidden>
+  <div class="picker" id="picker"></div>
+  <div class="picker-meta">
+    <span class="picker-name" id="hatName"></span>
+    <span class="picker-price" id="hatPrice"></span>
+    <button class="picker-exit" id="exitSelection" hidden>Leave selection</button>
+  </div>
+
+  <div class="stages">
+    <div class="stage" id="photoStage">
+      <span class="stage-label rr-caps">You</span>
       <video id="cam" autoplay playsinline muted hidden></video>
-      <canvas id="overlay" hidden></canvas>
       <canvas id="photoCanvas" hidden></canvas>
       <div class="stage-status" id="status">
         <span class="status-spark" id="statusSpark">✦</span>
-        <p id="statusMsg">Cargando el probador…</p>
+        <p id="statusMsg">Loading…</p>
         <div class="status-actions" id="statusActions"></div>
       </div>
       <div class="stage-toast" id="toast" hidden></div>
     </div>
 
-    <aside class="panel">
-      <div class="hat-picker" id="picker"></div>
-      <div class="hat-info">
-        <span class="rr-caps" id="hatSub"></span>
-        <span class="hat-info-name" id="hatName"></span>
-        <span class="hat-info-price" id="hatPrice"></span>
-        <a href="index.html#edit">Ver en el edit →</a>
-      </div>
-      <div class="controls">
-        <button class="btn btn-foil" id="shootBtn" disabled>Capturar ✦</button>
-        <button class="btn btn-outline" id="uploadBtn">Subir una foto</button>
-        <button class="btn btn-outline" id="backCamBtn" hidden>Volver a la cámara</button>
-        <input type="file" id="fileInput" accept="image/*" hidden>
-      </div>
-      <div class="manual" id="manual" hidden>
-        <span class="manual-hint">Arrastra para mover el sombrero · pellizca con dos dedos para escalar</span>
-        <label>Tamaño</label>
-        <input type="range" id="manualScale" min="0.82" max="1.25" step="0.01" value="1">
-        <button class="btn btn-outline" id="manualReset" style="padding:9px 18px;font-size:12px">Reajustar</button>
-      </div>
-    </aside>
-  </div>
-</section>
-
-<section class="aitryon wrap">
-  <div class="tryon-head">
-    <span class="rr-caps"><span class="spark">✦</span> El probador con IA</span>
-    <h2 id="aiHeadTitle">¿Y en la vida real?</h2>
-    <p id="aiHeadDek">Nuestra IA toma tu foto de arriba (cámara o la que subiste) y el sombrero elegido, y genera una imagen realista tuya con él puesto. Tarda unos segundos.</p>
-  </div>
-  <div class="ai-picker" id="aiPicker" hidden></div>
-  <div class="ai-main">
-    <div class="ai-stage" id="aiStage">
-      <img id="aiResult" hidden alt="Tu look generado con IA">
-      <div class="ai-placeholder" id="aiPlaceholder">
+    <div class="stage" id="resultStage">
+      <span class="stage-label rr-caps">Your look</span>
+      <img id="aiResult" hidden alt="Your AI look">
+      <div class="stage-placeholder" id="aiPlaceholder">
         <span class="status-spark">✦</span>
-        <p id="aiPlaceholderText">Activa la cámara o sube una foto arriba, elige tu sombrero y pulsa “Generar con IA”.</p>
+        <p id="aiPlaceholderText">Add your photo, pick a hat, and hit Generate.</p>
       </div>
-      <div class="ai-loader" id="aiLoader" hidden>
+      <div class="stage-loader" id="aiLoader" hidden>
         <span class="status-spark pulse">✦</span>
         <p id="aiLoaderText">Tailoring your look…</p>
       </div>
     </div>
-    <aside class="ai-actions">
-      <button class="btn btn-foil" id="aiGenerate">Generar con IA ✦</button>
-      <button class="btn btn-outline" id="aiDownload" hidden>Descargar ✦</button>
-      <button class="btn btn-outline" id="aiRetry" hidden>Generar otra</button>
-      <span class="rr-caps ai-note">Imagen generada por IA · el resultado puede variar</span>
-    </aside>
+  </div>
+
+  <div class="generate-block">
+    <label class="ack"><input type="checkbox" id="ackBox"> I've read the note below.</label>
+    <div class="controls">
+      <button class="btn btn-foil" id="aiGenerate" disabled>Generate ✦</button>
+      <button class="btn btn-outline" id="uploadBtn">Upload a photo</button>
+      <button class="btn btn-outline" id="aiDownload" hidden>Download ✦</button>
+      <button class="btn btn-outline" id="aiRetry" hidden>Try another</button>
+      <input type="file" id="fileInput" accept="image/*" hidden>
+    </div>
+  </div>
+  <p class="ai-disclosure">Fair warning — this is AI having a go, not a mirror. It catches the shape, the color, the swagger, but the odd stitch or concho might wander off. It's here so you can picture yourself in it, not count the threads. The real hat always wears better.</p>
   </div>
 </section>
 
 <footer>
   <div class="wrap" style="padding-top:24px;padding-bottom:40px;border-top:1px solid var(--border-subtle);display:flex;justify-content:space-between;font-size:var(--type-small);color:var(--text-tertiary);font-family:var(--font-ui)">
-    <span>Rhinestone Row — El probador</span>
+    <span>Rhinestone Row — The fitting room</span>
     <span>Curated ✦ Elevated ✦ Worn</span>
   </div>
 </footer>
 
-<script type="module">
-import { FaceLandmarker, FilesetResolver } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14";
-
-const WASM_BASE = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm";
-const MODEL_URL = "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task";
-
-/* ---------- Sombreros + calibración ----------
-   scale   : ancho del sombrero = ancho de cara (sien a sien) × scale
-   anchorX : fracción del ancho del PNG donde está el eje del sombrero
-   anchorY : fracción de la altura del PNG donde está la línea de la cinta
-             (donde apoya en la cabeza)
-   offsetY : cuánto sube el punto de anclaje desde la frente (landmark 10),
-             en múltiplos del ancho de cara; positivo = más arriba          */
-const HATS = {
-  'felt-rust':           { name: 'Montecarlo — rust',      price: '$295', sub: 'Bullhide · 6X felt',
-                           src: 'assets/tryon/hat-felt-rust.png',
-                           scale: 2.5, anchorX: 0.50, anchorY: 0.60, offsetY: 0.10 },
-  'leather-distressed':  { name: 'Kingman — tobacco',      price: '$248', sub: 'Bullhide · crazy horse leather',
-                           src: 'assets/tryon/hat-leather-distressed.png',
-                           scale: 2.2, anchorX: 0.40, anchorY: 0.50, offsetY: 0.24 },
-  'leather-saddle':      { name: 'Jason — saddle brown',   price: '$186', sub: 'Bullhide · crushable leather',
-                           src: 'assets/tryon/hat-leather-saddle.png',
-                           scale: 2.6, anchorX: 0.50, anchorY: 0.65, offsetY: 0.07 },
-  'straw-black':         { name: 'Rodeo Round-Up — black', price: '$310', sub: 'Bullhide · 50X straw',
-                           src: 'assets/tryon/hat-straw-black.png',
-                           scale: 1.85, anchorX: 0.52, anchorY: 0.34, offsetY: 0.55 },
-};
-
-/* ---------- Estado global ---------- */
+<script>
 const $ = id => document.getElementById(id);
-const video = $('cam'), overlay = $('overlay'), photoCanvas = $('photoCanvas');
-const octx = overlay.getContext('2d'), pctx = photoCanvas.getContext('2d');
+const esc = s => (s || '').toString().replace(/"/g, '&quot;');
 
-let landmarker = null, landmarkerMode = null;
-let currentHat = 'felt-rust';
-let mode = 'idle';               // idle | live | photo
-let stream = null, rafId = null, lastVideoTime = -1, faceSeenAt = 0;
-const hatImgs = {};              // key -> HTMLImageElement (precargados)
-let photoImg = null;             // canvas base con la foto subida
-let photoPose = null;            // colocación detectada en la foto {x,y,w,rot} o null
-let catalogMode = false;         // true si llegamos con una selección del catálogo (solo IA)
-let catalogHats = [];            // [{ref,name,material,image,category,url}]
-let currentCatalogHat = null;
-const manual = { dx: 0, dy: 0, scale: 1, rot: 0 };            // ajuste manual en modo foto
-const liveManual = { dx: 0, dy: 0, scale: 1 };                // ajuste manual en modo cámara (dx/dy en fracciones de ancho de cara)
-const smooth = { x: 0, y: 0, w: 0, rot: 0, init: false };
-const LERP = 0.35;
-// ancho de cara suavizado (para expresar el nudge manual en vivo de forma independiente a la distancia)
-const liveFaceW = () => (smooth.init && smooth.w) ? smooth.w / HATS[currentHat].scale : overlay.width * 0.2;
-const DEBUG = new URLSearchParams(location.search).get('debug') === '1';
-
-const secure = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
-
-/* ---------- Estados / UI ---------- */
-const statusEl = $('status'), statusMsg = $('statusMsg'), statusSpark = $('statusSpark'), statusActions = $('statusActions');
-const toast = $('toast');
-
-function setStatus(msg, { spinner = false, actions = [] } = {}) {
-  if (msg === null) { statusEl.hidden = true; return; }
-  statusEl.hidden = false;
-  statusMsg.textContent = msg;
-  statusSpark.classList.toggle('pulse', spinner);
-  statusActions.replaceChildren(...actions.map(([label, cls, fn]) => {
-    const b = document.createElement('button');
-    b.className = 'btn ' + cls; b.textContent = label; b.addEventListener('click', fn);
-    return b;
-  }));
-}
-function setToast(msg) {
-  toast.hidden = !msg;
-  if (msg) toast.textContent = msg;
-}
-
-function showStart(extraMsg) {
-  mode = 'idle';
-  $('shootBtn').disabled = true;
-  $('manual').hidden = true;
-  const actions = [];
-  if (secure) actions.push(['Activar cámara', 'btn-foil', startCamera]);
-  actions.push([secure ? 'O sube una foto' : 'Subir una foto', 'btn-outline', () => $('fileInput').click()]);
-  setStatus(extraMsg || (secure
-    ? 'Pruébatelo en vivo con la cámara, o sube una foto tuya.'
-    : 'La cámara requiere una conexión segura (https) — sube una foto para probarte el sombrero.'), { actions });
-}
-
-/* ---------- MediaPipe ---------- */
-let initPromise = initLandmarker();
-async function initLandmarker() {
-  const vision = await FilesetResolver.forVisionTasks(WASM_BASE);
-  const opts = delegate => ({
-    baseOptions: { modelAssetPath: MODEL_URL, delegate },
-    runningMode: 'VIDEO', numFaces: 1,
-    outputFacialTransformationMatrixes: false, outputFaceBlendshapes: false,
-  });
-  try { landmarker = await FaceLandmarker.createFromOptions(vision, opts('GPU')); }
-  catch { landmarker = await FaceLandmarker.createFromOptions(vision, opts('CPU')); }
-  landmarkerMode = 'VIDEO';
-}
-async function ensureMode(m) {
-  await initPromise;
-  if (landmarkerMode !== m) { await landmarker.setOptions({ runningMode: m }); landmarkerMode = m; }
-}
-
-/* ---------- Anclaje del sombrero ---------- */
-const lerp = (a, b, t) => a + (b - a) * t;
-const lerpAngle = (a, b, t) => a + Math.atan2(Math.sin(b - a), Math.cos(b - a)) * t;
-const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
-
-/* Límites del ajuste manual: afinado sutil, no puede quedar diminuto/gigante ni volar lejos */
-const SCALE_MIN = 0.82, SCALE_MAX = 1.25;   // escala relativa al ajuste automático (±~20%)
-const NUDGE_MAX = 0.3;                       // desplazamiento máx. en fracciones de ancho de cara
-const DRAG_GAIN = 0.55;                       // el dedo recorre más que el sombrero (arrastre suave)
-
-// Devuelve la colocación {x,y,w,rot} a partir de los landmarks (coords de canvas)
-function poseFromLandmarks(lm, W, H) {
-  const L = { x: lm[234].x * W, y: lm[234].y * H };
-  const R = { x: lm[454].x * W, y: lm[454].y * H };
-  const forehead = { x: lm[10].x * W, y: lm[10].y * H };
-  const faceW = Math.hypot(R.x - L.x, R.y - L.y);
-  const rot = Math.atan2(R.y - L.y, R.x - L.x);
-  const cal = HATS[currentHat];
-  const up = { x: Math.sin(rot), y: -Math.cos(rot) };
-  return {
-    x: forehead.x + up.x * cal.offsetY * faceW,
-    y: forehead.y + up.y * cal.offsetY * faceW,
-    w: faceW * cal.scale,
-    rot,
-    faceW, forehead, L, R,          // extras para el modo debug
-  };
-}
-
-function drawHatAt(ctx, pose) {
-  const img = hatImgs[currentHat];
-  if (!img || !img.complete || !pose) return;
-  const cal = HATS[currentHat];
-  const w = pose.w, h = w * (img.naturalHeight / img.naturalWidth);
-  ctx.save();
-  ctx.translate(pose.x, pose.y);
-  ctx.rotate(pose.rot);
-  ctx.drawImage(img, -cal.anchorX * w, -cal.anchorY * h, w, h);
-  ctx.restore();
-}
-
-function drawDebug(ctx, pose) {
-  if (!DEBUG || !pose || !pose.forehead) return;
-  ctx.save();
-  ctx.fillStyle = '#E0447F';
-  for (const p of [pose.L, pose.R, pose.forehead]) { ctx.beginPath(); ctx.arc(p.x, p.y, 5, 0, 7); ctx.fill(); }
-  ctx.strokeStyle = '#E0447F'; ctx.lineWidth = 2;
-  ctx.beginPath(); ctx.moveTo(pose.L.x, pose.L.y); ctx.lineTo(pose.R.x, pose.R.y); ctx.stroke();
-  ctx.fillStyle = '#C6A15B';
-  ctx.beginPath(); ctx.arc(pose.x, pose.y, 6, 0, 7); ctx.fill();
-  ctx.restore();
-}
-
-/* ---------- Modo cámara ---------- */
-async function startCamera() {
-  setStatus('Cargando el probador…', { spinner: true });
-  try { await initPromise; }
-  catch (e) { console.error(e); setStatus('No se pudo cargar el detector facial. Revisa la conexión.', { actions: [['Reintentar', 'btn-foil', retryInit]] }); return; }
-  try {
-    stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false,
-    });
-  } catch (e) {
-    const msg = e.name === 'NotAllowedError' ? 'Permiso de cámara denegado. Puedes probarte el sombrero subiendo una foto.'
-      : e.name === 'NotFoundError' ? 'No se encontró ninguna cámara. Sube una foto para probarte el sombrero.'
-      : 'No se pudo abrir la cámara (¿la está usando otra app?). Sube una foto para probarte el sombrero.';
-    setStatus(msg, { actions: [['Subir una foto', 'btn-foil', () => $('fileInput').click()]] });
-    return;
-  }
-  await ensureMode('VIDEO');
-  photoCanvas.hidden = true; $('backCamBtn').hidden = true;
-  video.hidden = false; overlay.hidden = false;
-  Object.assign(liveManual, { dx: 0, dy: 0, scale: 1 });
-  $('manual').hidden = false; $('manualScale').value = 1;
-  video.srcObject = stream;
-  try { await video.play(); } catch {}
-  mode = 'live';
-  smooth.init = false; lastVideoTime = -1; faceSeenAt = performance.now();
-  $('shootBtn').disabled = false;
-  setStatus(null); setToast(null);
-  rafId = requestAnimationFrame(liveLoop);
-}
-
-function liveLoop() {
-  if (mode !== 'live') return;
-  if (video.videoWidth && (overlay.width !== video.videoWidth || overlay.height !== video.videoHeight)) {
-    overlay.width = video.videoWidth; overlay.height = video.videoHeight;
-  }
-  if (video.currentTime !== lastVideoTime && video.videoWidth) {
-    lastVideoTime = video.currentTime;
-    let res = null;
-    try { res = landmarker.detectForVideo(video, performance.now()); } catch {}
-    octx.clearRect(0, 0, overlay.width, overlay.height);
-    if (res && res.faceLandmarks.length) {
-      faceSeenAt = performance.now();
-      setToast(null);
-      const t = poseFromLandmarks(res.faceLandmarks[0], overlay.width, overlay.height);
-      if (!smooth.init) { Object.assign(smooth, { x: t.x, y: t.y, w: t.w, rot: t.rot, init: true }); }
-      smooth.x = lerp(smooth.x, t.x, LERP); smooth.y = lerp(smooth.y, t.y, LERP);
-      smooth.w = lerp(smooth.w, t.w, LERP); smooth.rot = lerpAngle(smooth.rot, t.rot, LERP);
-      if (!catalogMode) {
-        const fw = liveFaceW();
-        drawHatAt(octx, {
-          x: smooth.x + liveManual.dx * fw,
-          y: smooth.y + liveManual.dy * fw,
-          w: smooth.w * liveManual.scale,
-          rot: smooth.rot,
-        });
-      }
-      drawDebug(octx, t);
-    } else {
-      smooth.init = false;
-      if (performance.now() - faceSeenAt > 1000) setToast('No te veo — acércate un poco más');
-    }
-  }
-  rafId = requestAnimationFrame(liveLoop);
-}
-
-function stopCamera() {
-  if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
-  if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
-  video.srcObject = null;
-  video.hidden = true; overlay.hidden = true;
-  setToast(null);
-}
-
-function retryInit() {
-  initPromise = initLandmarker();
-  showStart();
-}
-
-/* ---------- Modo foto ---------- */
-$('uploadBtn').addEventListener('click', () => $('fileInput').click());
-$('backCamBtn').addEventListener('click', () => { photoImg = null; startCamera(); });
-
-$('fileInput').addEventListener('change', async e => {
-  const file = e.target.files[0];
-  e.target.value = '';
-  if (!file) return;
-  if (mode === 'live') stopCamera();
-  mode = 'photo';
-  setStatus('Buscando tu cara en la foto…', { spinner: true });
-  const img = new Image();
-  const url = URL.createObjectURL(file);
-  try {
-    await new Promise((ok, bad) => { img.onload = ok; img.onerror = bad; img.src = url; });
-  } catch { setStatus('No se pudo leer esa imagen.', { actions: [['Probar otra', 'btn-foil', () => $('fileInput').click()]] }); return; }
-  const MAX = 1600;
-  const k = Math.min(1, MAX / Math.max(img.naturalWidth, img.naturalHeight));
-  photoImg = document.createElement('canvas');
-  photoImg.width = Math.round(img.naturalWidth * k);
-  photoImg.height = Math.round(img.naturalHeight * k);
-  photoImg.getContext('2d').drawImage(img, 0, 0, photoImg.width, photoImg.height);
-  URL.revokeObjectURL(url);
-
-  photoCanvas.width = photoImg.width; photoCanvas.height = photoImg.height;
-  photoCanvas.hidden = false; video.hidden = true; overlay.hidden = true;
-  $('backCamBtn').hidden = !secure;
-  $('manual').hidden = false;
-  Object.assign(manual, { dx: 0, dy: 0, scale: 1, rot: 0 });
-  $('manualScale').value = 1;
-
-  photoPose = null;
-  try {
-    await ensureMode('IMAGE');
-    const res = landmarker.detect(photoImg);
-    if (res.faceLandmarks.length) {
-      photoPose = poseFromLandmarks(res.faceLandmarks[0], photoCanvas.width, photoCanvas.height);
-    }
-  } catch (err) { console.error(err); }
-
-  $('shootBtn').disabled = false;
-  setStatus(null);
-  setToast(photoPose ? null : 'No detecté una cara — coloca el sombrero con el dedo');
-  renderPhoto();
-});
-
-function currentPhotoPose() {
-  const base = photoPose || {
-    x: photoCanvas.width / 2, y: photoCanvas.height * 0.3,
-    w: photoCanvas.width * 0.5, rot: 0,
-  };
-  return { x: base.x + manual.dx, y: base.y + manual.dy, w: base.w * manual.scale, rot: base.rot + manual.rot,
-           forehead: base.forehead, L: base.L, R: base.R };
-}
-
-function renderPhoto() {
-  if (mode !== 'photo' || !photoImg) return;
-  pctx.clearRect(0, 0, photoCanvas.width, photoCanvas.height);
-  pctx.drawImage(photoImg, 0, 0);
-  if (catalogMode) return;                 // sin overlay AR para sombreros del catálogo
-  const pose = currentPhotoPose();
-  drawHatAt(pctx, pose);
-  drawDebug(pctx, pose);
-}
-
-/* Ajuste manual: arrastrar / pellizcar sobre la foto */
-const pointers = new Map();
-let pinchStart = null;
-photoCanvas.addEventListener('pointerdown', e => {
-  try { photoCanvas.setPointerCapture(e.pointerId); } catch {}
-  pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
-  if (pointers.size === 2) {
-    const [a, b] = [...pointers.values()];
-    pinchStart = { d: Math.hypot(b.x - a.x, b.y - a.y), ang: Math.atan2(b.y - a.y, b.x - a.x), scale: manual.scale, rot: manual.rot };
-  }
-});
-photoCanvas.addEventListener('pointermove', e => {
-  if (!pointers.has(e.pointerId) || mode !== 'photo') return;
-  const prev = pointers.get(e.pointerId);
-  const k = photoCanvas.width / photoCanvas.getBoundingClientRect().width;
-  if (pointers.size === 1) {
-    manual.dx += (e.clientX - prev.x) * k;
-    manual.dy += (e.clientY - prev.y) * k;
-  }
-  pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
-  if (pointers.size === 2 && pinchStart) {
-    const [a, b] = [...pointers.values()];
-    const d = Math.hypot(b.x - a.x, b.y - a.y), ang = Math.atan2(b.y - a.y, b.x - a.x);
-    manual.scale = clamp(pinchStart.scale * d / pinchStart.d, SCALE_MIN, SCALE_MAX);
-    manual.rot = pinchStart.rot + (ang - pinchStart.ang);
-    $('manualScale').value = manual.scale;
-  }
-  renderPhoto();
-});
-const endPointer = e => { pointers.delete(e.pointerId); if (pointers.size < 2) pinchStart = null; };
-photoCanvas.addEventListener('pointerup', endPointer);
-photoCanvas.addEventListener('pointercancel', endPointer);
-
-/* Ajuste manual en modo cámara en vivo: arrastrar mueve, pellizcar escala (sobre el ajuste automático) */
-const stage = $('stage');
-const livePointers = new Map();
-let livePinch = null;
-stage.addEventListener('pointerdown', e => {
-  if (mode !== 'live') return;
-  try { stage.setPointerCapture(e.pointerId); } catch {}
-  livePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
-  if (livePointers.size === 2) {
-    const [a, b] = [...livePointers.values()];
-    livePinch = { d: Math.hypot(b.x - a.x, b.y - a.y), scale: liveManual.scale };
-  }
-});
-stage.addEventListener('pointermove', e => {
-  if (mode !== 'live' || !livePointers.has(e.pointerId)) return;
-  const prev = livePointers.get(e.pointerId);
-  const rect = overlay.getBoundingClientRect();
-  const k = overlay.height / rect.height;           // px de canvas por px de pantalla
-  const fw = liveFaceW();
-  if (livePointers.size === 1) {
-    liveManual.dx = clamp(liveManual.dx + (-(e.clientX - prev.x) * k) / fw * DRAG_GAIN, -NUDGE_MAX, NUDGE_MAX);  // negado: el overlay va espejado
-    liveManual.dy = clamp(liveManual.dy + ((e.clientY - prev.y) * k) / fw * DRAG_GAIN, -NUDGE_MAX, NUDGE_MAX);
-  }
-  livePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
-  if (livePointers.size === 2 && livePinch) {
-    const [a, b] = [...livePointers.values()];
-    const d = Math.hypot(b.x - a.x, b.y - a.y);
-    liveManual.scale = clamp(livePinch.scale * d / livePinch.d, SCALE_MIN, SCALE_MAX);
-    $('manualScale').value = liveManual.scale;
-  }
-});
-const endLive = e => { livePointers.delete(e.pointerId); if (livePointers.size < 2) livePinch = null; };
-stage.addEventListener('pointerup', endLive);
-stage.addEventListener('pointercancel', endLive);
-
-$('manualScale').addEventListener('input', e => {
-  if (mode === 'live') { liveManual.scale = +e.target.value; }
-  else { manual.scale = +e.target.value; renderPhoto(); }
-});
-$('manualReset').addEventListener('click', () => {
-  if (mode === 'live') { Object.assign(liveManual, { dx: 0, dy: 0, scale: 1 }); }
-  else { Object.assign(manual, { dx: 0, dy: 0, scale: 1, rot: 0 }); renderPhoto(); }
-  $('manualScale').value = 1;
-});
-
-/* ---------- Captura ---------- */
-$('shootBtn').addEventListener('click', async () => {
-  let out;
-  if (mode === 'photo' && photoImg) {
-    out = photoCanvas;
-  } else if (mode === 'live' && video.videoWidth) {
-    out = document.createElement('canvas');
-    out.width = video.videoWidth; out.height = video.videoHeight;
-    const ctx = out.getContext('2d');
-    ctx.translate(out.width, 0); ctx.scale(-1, 1);      // captura espejada = lo que ves
-    ctx.drawImage(video, 0, 0);
-    const fw = liveFaceW();
-    drawHatAt(ctx, {
-      x: smooth.x + liveManual.dx * fw,
-      y: smooth.y + liveManual.dy * fw,
-      w: smooth.w * liveManual.scale,
-      rot: smooth.rot,
-    });
-  } else return;
-
-  const blob = await new Promise(r => out.toBlob(r, 'image/png'));
-  const file = new File([blob], `rhinestone-row-${currentHat}.png`, { type: 'image/png' });
-  if (navigator.canShare && navigator.canShare({ files: [file] })) {
-    try { await navigator.share({ files: [file] }); return; } catch {}
-  }
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = file.name;
-  a.click();
-  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
-});
-
-/* ---------- Probador con IA (Fal, vía /api/tryon) ---------- */
 const AI_PHRASES = [
   'Tailoring your look…',
   'Shaping the brim…',
@@ -645,10 +202,121 @@ const AI_PHRASES = [
   'Catching the golden hour…',
   'Almost ready to ride…',
 ];
-const aiResult = $('aiResult'), aiLoader = $('aiLoader'), aiPlaceholder = $('aiPlaceholder');
-let aiResultUrl = null, aiPhraseTimer = null;
 
-// Fuente de la persona: el frame actual de la cámara (espejado, como se ve) o la foto subida.
+/* ---------- State ---------- */
+const video = $('cam'), photoCanvas = $('photoCanvas'), pctx = photoCanvas.getContext('2d');
+const aiResult = $('aiResult'), aiLoader = $('aiLoader'), aiPlaceholder = $('aiPlaceholder');
+let mode = 'idle';                 // idle | live | photo
+let stream = null;
+let photoImg = null;               // canvas with the uploaded photo
+let hats = [], current = null, catalogMode = false;
+let aiResultUrl = null, aiPhraseTimer = null;
+const secure = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+
+/* ---------- Status ---------- */
+const statusEl = $('status'), statusMsg = $('statusMsg'), statusSpark = $('statusSpark'), statusActions = $('statusActions'), toast = $('toast');
+function setStatus(msg, { spinner = false, actions = [] } = {}) {
+  if (msg === null) { statusEl.hidden = true; return; }
+  statusEl.hidden = false;
+  statusMsg.textContent = msg;
+  statusSpark.classList.toggle('pulse', spinner);
+  statusActions.replaceChildren(...actions.map(([label, cls, fn]) => {
+    const b = document.createElement('button');
+    b.className = 'btn ' + cls; b.textContent = label; b.addEventListener('click', fn);
+    return b;
+  }));
+}
+function setToast(msg) { toast.hidden = !msg; if (msg) toast.textContent = msg; }
+function showStart(extraMsg) {
+  mode = 'idle';
+  const actions = [];
+  if (secure) actions.push(['Enable camera', 'btn-foil', startCamera]);
+  actions.push([secure ? 'Upload a photo' : 'Upload a photo', 'btn-outline', () => $('fileInput').click()]);
+  setStatus(extraMsg || (secure
+    ? 'Enable your camera, or upload a photo.'
+    : 'Camera needs a secure connection — upload a photo to try a hat on.'), { actions });
+}
+
+/* ---------- Camera ---------- */
+async function startCamera() {
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false,
+    });
+  } catch (e) {
+    const msg = e.name === 'NotAllowedError' ? 'Camera access denied. Upload a photo instead.'
+      : e.name === 'NotFoundError' ? 'No camera found. Upload a photo instead.'
+      : "Couldn't open the camera. Upload a photo instead.";
+    setStatus(msg, { actions: [['Upload a photo', 'btn-foil', () => $('fileInput').click()]] });
+    return;
+  }
+  photoCanvas.hidden = true; photoImg = null;
+  video.hidden = false;
+  video.srcObject = stream;
+  try { await video.play(); } catch {}
+  mode = 'live';
+  setStatus(null); setToast(null);
+}
+function stopCamera() {
+  if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+  video.srcObject = null; video.hidden = true;
+}
+document.addEventListener('visibilitychange', () => { if (document.hidden && mode === 'live') stopCamera(); });
+window.addEventListener('pagehide', () => { if (mode === 'live') stopCamera(); });
+
+/* ---------- Photo upload ---------- */
+/* ---------- Acknowledge gate: can't Generate until the note is marked read ---------- */
+const ackBox = $('ackBox');
+function syncGenerate(){ $('aiGenerate').disabled = !(ackBox && ackBox.checked); }
+if (ackBox) {
+  if (sessionStorage.getItem('rr_ai_ack') === '1') ackBox.checked = true;
+  ackBox.addEventListener('change', () => {
+    if (ackBox.checked) sessionStorage.setItem('rr_ai_ack', '1'); else sessionStorage.removeItem('rr_ai_ack');
+    syncGenerate();
+  });
+}
+
+$('uploadBtn').addEventListener('click', () => $('fileInput').click());
+$('fileInput').addEventListener('change', async e => {
+  const file = e.target.files[0];
+  e.target.value = '';
+  if (!file) return;
+  if (mode === 'live') stopCamera();
+  const img = new Image();
+  const url = URL.createObjectURL(file);
+  try { await new Promise((ok, bad) => { img.onload = ok; img.onerror = bad; img.src = url; }); }
+  catch { setStatus('Could not read that image.', { actions: [['Try another', 'btn-foil', () => $('fileInput').click()]] }); return; }
+  const MAX = 1600;
+  const k = Math.min(1, MAX / Math.max(img.naturalWidth, img.naturalHeight));
+  photoImg = document.createElement('canvas');
+  photoImg.width = Math.round(img.naturalWidth * k);
+  photoImg.height = Math.round(img.naturalHeight * k);
+  photoImg.getContext('2d').drawImage(img, 0, 0, photoImg.width, photoImg.height);
+  URL.revokeObjectURL(url);
+  photoCanvas.width = photoImg.width; photoCanvas.height = photoImg.height;
+  pctx.drawImage(photoImg, 0, 0);
+  video.hidden = true; photoCanvas.hidden = false;
+  mode = 'photo';
+  setStatus(null); setToast(null);
+});
+
+/* ---------- Hat picker ---------- */
+function renderPicker() {
+  const el = $('picker');
+  el.innerHTML = hats.map(h =>
+    `<button class="hat-thumb${catalogMode ? ' catalog' : ''}${h.id === current.id ? ' active' : ''}" data-id="${esc(h.id)}" title="${esc(h.name)}"><img src="${esc(h.thumb)}" alt="${esc(h.name)}"></button>`
+  ).join('');
+  el.querySelectorAll('.hat-thumb').forEach(b => b.addEventListener('click', () => selectHat(b.dataset.id)));
+  selectHat(current.id);
+}
+function selectHat(id) {
+  current = hats.find(h => h.id === id) || hats[0];
+  for (const el of document.querySelectorAll('.hat-thumb')) el.classList.toggle('active', el.dataset.id === current.id);
+  $('hatName').textContent = current.name || '';
+  $('hatPrice').textContent = current.price || '';
+}
+
+/* ---------- Generate ---------- */
 function personSource() {
   if (mode === 'live' && video.videoWidth) {
     const c = document.createElement('canvas');
@@ -680,11 +348,11 @@ function aiError(msg) {
   aiLoaderOn(false);
   aiResult.hidden = true; aiPlaceholder.hidden = false;
   $('aiPlaceholderText').textContent = msg;
-  $('aiGenerate').disabled = false; $('aiRetry').hidden = false;
+  syncGenerate(); $('aiRetry').hidden = false;
 }
 async function generateAI() {
   const src = personSource();
-  if (!src) { setToast('Primero activa la cámara o sube una foto arriba'); return; }
+  if (!src) { setToast('Add your photo first — enable the camera or upload one'); return; }
   const MAX = 1280;
   const k = Math.min(1, MAX / Math.max(src.width, src.height));
   const c = document.createElement('canvas');
@@ -697,42 +365,39 @@ async function generateAI() {
   $('aiDownload').hidden = true; $('aiRetry').hidden = true; $('aiGenerate').disabled = true;
   aiLoaderOn(true);
 
-  const hatPayload = catalogMode
-    ? { hatImageUrl: currentCatalogHat.image }
-    : { hat: currentHat };
   try {
     const r = await fetch('/api/tryon', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ personImage, ...hatPayload, aspect }),
+      body: JSON.stringify({ personImage, ...current.payload, aspect }),
     });
     const data = await r.json().catch(() => ({}));
     if (!r.ok || !data.url) {
       aiError(data.error === 'unconfigured'
-        ? 'El probador con IA todavía no está activado. Vuelve pronto.'
-        : 'No se pudo generar la imagen. Inténtalo otra vez.');
+        ? "The try-on isn't live yet. Check back soon."
+        : "Couldn't generate that one. Give it another shot.");
       return;
     }
     aiResultUrl = data.url;
     aiResult.onload = () => {
       aiLoaderOn(false);
       aiResult.hidden = false;
-      $('aiDownload').hidden = false; $('aiRetry').hidden = false; $('aiGenerate').disabled = false;
+      $('aiDownload').hidden = false; $('aiRetry').hidden = false; syncGenerate();
     };
-    aiResult.onerror = () => aiError('No se pudo cargar la imagen generada.');
+    aiResult.onerror = () => aiError("Couldn't load the generated image.");
     aiResult.src = data.url;
   } catch {
-    aiError('No se pudo conectar. Revisa tu conexión e inténtalo otra vez.');
+    aiError('Connection failed. Check your network and try again.');
   }
 }
 $('aiGenerate').addEventListener('click', generateAI);
 $('aiRetry').addEventListener('click', generateAI);
 $('aiDownload').addEventListener('click', async () => {
   if (!aiResultUrl) return;
+  const slug = (current.id || 'look').toString().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
   try {
     const resp = await fetch(aiResultUrl);
     const blob = await resp.blob();
-    const slug = (catalogMode ? (currentCatalogHat.ref || currentCatalogHat.name) : currentHat).toString().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-    const file = new File([blob], `rhinestone-row-${slug}-ia.jpg`, { type: blob.type || 'image/jpeg' });
+    const file = new File([blob], `rhinestone-row-${slug}.jpg`, { type: blob.type || 'image/jpeg' });
     if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file] }); return; }
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob); a.download = file.name; a.click();
@@ -740,118 +405,43 @@ $('aiDownload').addEventListener('click', async () => {
   } catch { window.open(aiResultUrl, '_blank'); }
 });
 
-/* ---------- Selector de sombrero ---------- */
-function selectHat(key) {
-  currentHat = key;
-  smooth.init = false;
-  for (const el of document.querySelectorAll('.hat-thumb')) el.classList.toggle('active', el.dataset.hat === key);
-  $('hatSub').textContent = HATS[key].sub;
-  $('hatName').textContent = HATS[key].name;
-  $('hatPrice').textContent = HATS[key].price;
-  if (DEBUG) syncDebug();
-  renderPhoto();
-}
-
-const picker = $('picker');
-for (const [key, hat] of Object.entries(HATS)) {
-  const b = document.createElement('button');
-  b.className = 'hat-thumb'; b.dataset.hat = key; b.title = hat.name;
-  const img = document.createElement('img');
-  img.src = hat.src; img.alt = hat.name;
-  b.appendChild(img);
-  b.addEventListener('click', () => selectHat(key));
-  picker.appendChild(b);
-  const pre = new Image(); pre.src = hat.src;      // precarga
-  hatImgs[key] = pre;
-  pre.onload = () => renderPhoto();
-}
-
-/* ---------- Debug (?debug=1) ---------- */
-let debugInputs = null;
-if (DEBUG) {
-  const panel = document.createElement('div');
-  panel.className = 'debug';
-  panel.innerHTML = `<strong style="color:var(--text-primary)">Calibración</strong>`;
-  debugInputs = {};
-  for (const [k, min, max, step] of [['scale', 1, 3.2, 0.01], ['anchorX', 0.2, 0.8, 0.005], ['anchorY', 0.2, 1, 0.005], ['offsetY', -0.3, 0.7, 0.005]]) {
-    const lab = document.createElement('label');
-    lab.innerHTML = `<span>${k}</span>`;
-    const inp = document.createElement('input');
-    Object.assign(inp, { type: 'range', min, max, step });
-    inp.addEventListener('input', () => { HATS[currentHat][k] = +inp.value; syncDebugPre(); renderPhoto(); });
-    lab.appendChild(inp); panel.appendChild(lab);
-    debugInputs[k] = inp;
-  }
-  const pre = document.createElement('pre');
-  pre.id = 'debugPre';
-  panel.appendChild(pre);
-  document.body.appendChild(panel);
-}
-function syncDebug() {
-  if (!debugInputs) return;
-  for (const k of ['scale', 'anchorX', 'anchorY', 'offsetY']) debugInputs[k].value = HATS[currentHat][k];
-  syncDebugPre();
-}
-function syncDebugPre() {
-  const c = HATS[currentHat];
-  $('debugPre').textContent = `'${currentHat}': { scale: ${c.scale}, anchorX: ${c.anchorX}, anchorY: ${c.anchorY}, offsetY: ${c.offsetY} }`;
-}
-
-/* ---------- Modo catálogo (selección traída del catálogo) ---------- */
-function selectCatalogHat(ref) {
-  currentCatalogHat = catalogHats.find(h => h.ref === ref) || catalogHats[0];
-  for (const el of document.querySelectorAll('.ai-hat')) el.classList.toggle('active', el.dataset.ref === currentCatalogHat.ref);
-  const nameEl = $('aiHatName'); if (nameEl) nameEl.textContent = currentCatalogHat.name || '';
-}
-function initCatalogMode() {
+/* ---------- Catalog selection (the only way into the fitting room) ---------- */
+function initCatalogSelection() {
   let sel = [];
   try { sel = JSON.parse(sessionStorage.getItem('rr_tryon_selection') || '[]'); } catch {}
   sel = (sel || []).filter(x => x && x.image);
   if (!sel.length) return;
   catalogMode = true;
-  catalogHats = sel;
-  currentCatalogHat = sel[0];
-
-  // Los sombreros del catálogo no tienen recorte PNG → sin AR: el visor de arriba
-  // sirve solo para tomarte la foto; la prueba se hace con IA abajo.
-  $('picker').hidden = true;
-  document.querySelector('.hat-info').hidden = true;
-  $('shootBtn').hidden = true;
-  $('manual').hidden = true;
-  document.querySelector('.tryon-head h1').textContent = 'Tómate una foto';
-  document.querySelector('.tryon-head p').textContent = 'Activa la cámara o sube una foto. Abajo eliges cuál de tus sombreros del catálogo probarte con IA.';
-
-  $('aiHeadTitle').textContent = 'Tu selección del catálogo';
-  $('aiHeadDek').innerHTML = `Elige uno de tus ${sel.length} sombrero${sel.length > 1 ? 's' : ''} y genera tu look. <button class="ai-catalog-exit" id="aiCatalogExit">Salir de la selección</button>`;
-  $('aiPlaceholderText').textContent = 'Activa la cámara o sube una foto arriba, elige un sombrero y pulsa “Generar con IA”.';
-
-  const esc = s => (s || '').toString().replace(/"/g, '&quot;');
-  const picker = $('aiPicker');
-  picker.hidden = false;
-  picker.innerHTML = sel.map(h =>
-    `<button class="ai-hat${h.ref === currentCatalogHat.ref ? ' active' : ''}" data-ref="${esc(h.ref)}" title="${esc(h.name)}"><img src="${esc(h.image)}" alt="${esc(h.name)}"></button>`
-  ).join('') + `<span class="ai-hat-name" id="aiHatName">${esc(currentCatalogHat.name)}</span>`;
-  picker.querySelectorAll('.ai-hat').forEach(b => b.addEventListener('click', () => selectCatalogHat(b.dataset.ref)));
-
-  $('aiCatalogExit').addEventListener('click', () => {
-    sessionStorage.removeItem('rr_tryon_selection');
-    location.href = 'probador.html';
-  });
+  hats = sel.map(s => ({ id: s.ref, name: s.name, price: '', thumb: s.image, payload: { hatImageUrl: s.image } }));
+  current = hats[0];
+  $('headTitle').textContent = 'Your picks, on you.';
+  $('headDek').textContent = `Pick one of your ${sel.length} hat${sel.length > 1 ? 's' : ''}, add your photo, and see the look.`;
+  const exit = $('exitSelection');
+  exit.hidden = false;
+  exit.addEventListener('click', () => { sessionStorage.removeItem('rr_tryon_selection'); location.href = 'probador.html'; });
 }
 
-/* ---------- Ciclo de vida ---------- */
-document.addEventListener('visibilitychange', () => {
-  if (document.hidden && mode === 'live') { stopCamera(); showStart(); }
-});
-window.addEventListener('pagehide', () => { if (mode === 'live') stopCamera(); });
+/* ---------- Nav badge (hats waiting in the fitting room) ---------- */
+(function(){
+  let n = 0;
+  try { n = (JSON.parse(sessionStorage.getItem('rr_tryon_selection') || '[]') || []).length; } catch {}
+  document.querySelectorAll('.nav-tryon').forEach(link => {
+    link.classList.toggle('has-picks', n > 0);
+    const b = link.querySelector('.nav-badge');
+    if (b) b.textContent = n;
+  });
+})();
 
-/* ---------- Arranque ---------- */
-const wanted = new URLSearchParams(location.search).get('hat');
-selectHat(HATS[wanted] ? wanted : 'felt-rust');
-if (DEBUG) syncDebug();
-if (!HATS[wanted]) initCatalogMode();   // ?hat= (destacado) tiene prioridad sobre la selección del catálogo
-showStart();
-initPromise.catch(e => { console.error(e); if (mode === 'idle') setStatus('No se pudo cargar el detector facial. Revisa la conexión.', { actions: [['Reintentar', 'btn-foil', retryInit]] }); });
+/* ---------- Boot ---------- */
+initCatalogSelection();
+if (hats.length) {
+  $('tryonBody').hidden = false;
+  renderPicker();
+  showStart();
+  syncGenerate();
+} else {
+  $('emptyState').hidden = false;   // no hats picked yet → prompt to choose a reference
+}
 </script>
 
 </body>

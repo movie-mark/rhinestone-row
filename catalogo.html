@@ -1,15 +1,15 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>El catálogo — Rhinestone Row</title>
+<title>The Catalog — Rhinestone Row</title>
 <link rel="stylesheet" href="styles.css">
 <style>
 /* ---------- Layout ---------- */
 .wrap{max-width:1280px;margin:0 auto;padding:0 32px}
 
-/* ---------- Nav (igual que index/probador) ---------- */
+/* ---------- Nav ---------- */
 .nav{position:fixed;top:0;left:0;right:0;z-index:30;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);background:rgba(20,18,28,.72);border-bottom:1px solid var(--border-subtle)}
 .nav-inner{display:flex;align-items:center;justify-content:space-between;height:64px}
 .nav-logo{font-family:var(--font-display);font-size:20px;color:var(--text-primary);letter-spacing:.01em}
@@ -19,6 +19,12 @@
 .nav-links a:hover{color:var(--text-primary);opacity:1}
 .nav-links a.active{color:var(--champagne)}
 .nav-cat-mobile{display:none;font-family:var(--font-ui);font-size:var(--type-small);font-weight:var(--weight-ui-semibold);letter-spacing:.02em;color:var(--champagne);border:1px solid var(--border-foil);padding:8px 16px}
+.nav-tryon{white-space:nowrap}
+.nav-tryon.has-picks{color:var(--champagne)}
+.nav-badge{min-width:19px;height:19px;padding:0 5px;border-radius:var(--radius-pill);background:var(--champagne);color:var(--ink);font-family:var(--font-ui);font-size:11px;font-weight:var(--weight-ui-semibold);line-height:1;vertical-align:middle;margin-left:2px;display:none;align-items:center;justify-content:center}
+.nav-tryon.has-picks .nav-badge{display:inline-flex}
+.nav-badge.pulse{animation:badgePulse .7s var(--ease-out)}
+@keyframes badgePulse{0%{transform:scale(1);box-shadow:0 0 0 0 rgba(198,161,91,.6)}50%{transform:scale(1.35);box-shadow:0 0 0 9px rgba(198,161,91,0)}100%{transform:scale(1);box-shadow:0 0 0 0 rgba(198,161,91,0)}}
 
 /* ---------- Intro ---------- */
 .intro{padding-top:104px;padding-bottom:8px;display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap}
@@ -49,7 +55,6 @@
 .swatches{position:absolute;bottom:10px;left:10px;display:flex;gap:5px;z-index:1}
 .swatch{width:16px;height:16px;border-radius:var(--radius-pill);border:1px solid rgba(243,238,228,.5);box-shadow:0 1px 3px rgba(0,0,0,.4)}
 .more-colors{font-family:var(--font-ui);font-size:10px;color:var(--pearl);background:rgba(20,18,28,.7);border-radius:var(--radius-pill);padding:2px 7px;align-self:center}
-/* check-mark de selección para el probador */
 .card-check{position:absolute;top:10px;right:10px;z-index:2;width:34px;height:34px;border-radius:var(--radius-pill);border:1px solid var(--border-strong);background:rgba(20,18,28,.72);color:var(--pearl);font-size:15px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background var(--dur-fast) var(--ease-out),border-color var(--dur-fast) var(--ease-out),color var(--dur-fast) var(--ease-out)}
 .card-check:hover{border-color:var(--champagne);color:var(--champagne)}
 .card-check .ic-plus{display:block}
@@ -67,7 +72,7 @@
 .card-link:hover{color:var(--champagne)}
 .empty{padding:60px 0;text-align:center;color:var(--text-tertiary);font-family:var(--font-ui)}
 
-/* ---------- Barra de selección ---------- */
+/* ---------- Selection bar ---------- */
 .selbar{position:fixed;left:0;right:0;bottom:0;z-index:40;transform:translateY(120%);transition:transform var(--dur-base) var(--ease-out);background:rgba(20,18,28,.9);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-top:1px solid var(--border-foil)}
 .selbar.show{transform:translateY(0)}
 .selbar-inner{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 0}
@@ -88,6 +93,10 @@
   .nav-links{display:none}
   .nav-cat-mobile{display:inline-flex}
   .selbar-thumbs{display:none}
+  /* filters become a single horizontal-scroll row so they never wall off the grid */
+  .chips{flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;padding:12px 32px;margin:0 -32px;gap:8px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .chips::-webkit-scrollbar{display:none}
+  .chip{flex:0 0 auto}
 }
 @media (max-width:480px){.grid{grid-template-columns:1fr}}
 </style>
@@ -99,22 +108,22 @@
     <a href="index.html" class="nav-logo">Rhinestone Row</a>
     <div class="nav-links">
       <a href="index.html#edit">The edit</a>
-      <a href="catalogo.html" class="active">Catálogo</a>
-      <a href="probador.html">Probador</a>
+      <a href="catalogo.html" class="active">Catalog</a>
+      <a href="probador.html" class="nav-tryon">Try-On <span class="nav-badge">0</span></a>
       <a href="index.html#curation">Curation</a>
     </div>
-    <a href="probador.html" class="nav-cat-mobile">Probador</a>
+    <a href="probador.html" class="nav-cat-mobile nav-tryon">Try-On <span class="nav-badge">0</span></a>
   </div>
 </nav>
 
 <div class="wrap">
   <section class="intro">
     <div class="intro-copy">
-      <span class="rr-caps">✦ El catálogo</span>
-      <h1>Toda la colección.</h1>
-      <p id="summary">Cargando sombreros…</p>
+      <span class="rr-caps">✦ The catalog</span>
+      <h1>The whole lineup.</h1>
+      <p id="summary">Loading hats…</p>
     </div>
-    <div class="search"><input id="q" type="search" placeholder="Buscar por nombre o material…" autocomplete="off"></div>
+    <div class="search"><input id="q" type="search" placeholder="Search by name or material…" autocomplete="off"></div>
   </section>
   <div class="chips" id="chips"></div>
   <div class="grid" id="grid"></div>
@@ -124,12 +133,12 @@
   <div class="wrap selbar-inner">
     <div class="selbar-info">
       <span class="selbar-count" id="selCount">0</span>
-      <span>seleccionados para el probador</span>
+      <span>picked for the fitting room</span>
       <div class="selbar-thumbs" id="selThumbs"></div>
     </div>
     <div class="selbar-actions">
-      <button class="selbar-clear" id="selClear">Limpiar</button>
-      <a class="btn btn-foil" id="selGo" href="probador.html">Probar con IA →</a>
+      <button class="selbar-clear" id="selClear">Clear</button>
+      <a class="btn btn-foil" id="selGo" href="probador.html">Try them on →</a>
     </div>
   </div>
 </div>
@@ -158,32 +167,42 @@ function swatchColor(name){
 function priceLabel(v){
   const priced = v.find(x=>x.price!=null);
   if(priced) return (priced.currency==='USD'?'$':'')+priced.price;
-  return 'Bajo consulta';
+  return 'On request';
 }
 const esc = s => (s||'').replace(/"/g,'&quot;').replace(/</g,'&lt;');
 const keyOf = p => p.ref || p.name;
 function firstImage(p){ const v = (p.variants||[]).find(x=>x.images&&x.images.length); return v ? v.images[0] : null; }
 
 let ALL = [], activeCat = null, query = '';
-const selection = new Map();               // key -> {ref,name,material,image,category,url}
+const selection = new Map();
 
-/* ---------- selección persistente ---------- */
 try { JSON.parse(sessionStorage.getItem(SEL_KEY) || '[]').forEach(x => selection.set(x.ref, x)); } catch {}
 function saveSelection(){ sessionStorage.setItem(SEL_KEY, JSON.stringify([...selection.values()])); }
+function updateNavBadge(pulse){
+  const n = selection.size;
+  document.querySelectorAll('.nav-tryon').forEach(link=>{
+    link.classList.toggle('has-picks', n > 0);
+    const b = link.querySelector('.nav-badge');
+    if(b){ b.textContent = n; if(pulse){ b.classList.remove('pulse'); void b.offsetWidth; b.classList.add('pulse'); } }
+  });
+}
 
-/* ---------- carga ---------- */
+/* preselect a category from ?cat= (home menu links here) */
+const wantedCat = new URLSearchParams(location.search).get('cat');
+
 (async function(){
   try{
     const res = await fetch('catalogo.json');
     const data = await res.json();
     ALL = (data.products || []).filter(p => (p.categories||[]).some(c => !NON_HAT.has(c)) && firstImage(p));
+    if (wantedCat && ALL.some(p => catsOfProduct(p).includes(wantedCat))) activeCat = wantedCat;
     buildChips();
     render();
-    document.getElementById('summary').textContent =
-      `${ALL.length} sombreros de Bullhide · marca cada uno con ✓ para probártelo`;
+    document.getElementById('summary').textContent = `${ALL.length} hats from Bullhide · tap ✓ to try one on`;
     updateSelbar();
+    updateNavBadge(false);
   }catch(e){
-    document.getElementById('summary').textContent = 'No se pudo cargar el catálogo: ' + e.message;
+    document.getElementById('summary').textContent = "Couldn't load the catalog: " + e.message;
   }
 })();
 
@@ -195,7 +214,7 @@ function buildChips(){
   const cats = Object.keys(counts).sort((a,b)=>counts[b]-counts[a]);
   const el = document.getElementById('chips');
   const chip = (label,cat,n)=>`<button class="chip${cat===activeCat?' active':''}" data-cat="${cat===null?'':encodeURIComponent(cat)}">${label}${n!=null?`<span class="n">${n}</span>`:''}</button>`;
-  el.innerHTML = chip('Todos', null, ALL.length) + cats.map(c=>chip(c, c, counts[c])).join('');
+  el.innerHTML = chip('All', null, ALL.length) + cats.map(c=>chip(c, c, counts[c])).join('');
   el.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{
     const raw=b.getAttribute('data-cat');
     activeCat = raw ? decodeURIComponent(raw) : null;
@@ -211,7 +230,7 @@ function render(){
     const q=query.toLowerCase();
     items = items.filter(p=>(p.name||'').toLowerCase().includes(q)||(p.material||'').toLowerCase().includes(q));
   }
-  if(!items.length){ grid.innerHTML='<div class="empty">Sin resultados.</div>'; return; }
+  if(!items.length){ grid.innerHTML='<div class="empty">No matches.</div>'; return; }
   grid.innerHTML = items.map(cardHTML).join('');
   grid.querySelectorAll('.card-check').forEach(btn=>btn.addEventListener('click', onToggle));
 }
@@ -227,8 +246,8 @@ function cardHTML(p){
   const on = selection.has(k);
   return `<article class="card${on?' selected':''}" data-key="${esc(k)}">
     <div class="card-img">
-      ${img?`<img loading="lazy" src="${esc(img)}" alt="${esc(p.name)}">`:'<span class="ph">Sin imagen</span>'}
-      <button class="card-check" data-key="${esc(k)}" aria-label="Añadir al probador" title="Probártelo">
+      ${img?`<img loading="lazy" src="${esc(img)}" alt="${esc(p.name)}">`:'<span class="ph">No image</span>'}
+      <button class="card-check" data-key="${esc(k)}" aria-label="Add to try-on" title="Try it on">
         <span class="ic-plus">✚</span><span class="ic-check">✓</span>
       </button>
       ${shown.length?`<div class="swatches">${shown.map(c=>`<span class="swatch" title="${esc(c)}" style="background:${swatchColor(c)}"></span>`).join('')}${extra>0?`<span class="more-colors">+${extra}</span>`:''}</div>`:''}
@@ -239,7 +258,7 @@ function cardHTML(p){
       ${p.material?`<span class="card-mat">${esc(p.material)}</span>`:''}
       <div class="card-meta">
         <span class="card-price">${priceLabel(p.variants||[])}</span>
-        ${link?`<a class="card-link" href="${esc(link)}" target="_blank" rel="noopener">Ver origen ↗</a>`:''}
+        ${link?`<a class="card-link" href="${esc(link)}" target="_blank" rel="noopener">Source ↗</a>`:''}
       </div>
     </div>
   </article>`;
@@ -249,13 +268,13 @@ function onToggle(e){
   e.preventDefault();
   const k = e.currentTarget.getAttribute('data-key');
   const card = e.currentTarget.closest('.card');
+  let added = false;
   if(selection.has(k)){
     selection.delete(k);
     card.classList.remove('selected');
   } else {
     if(selection.size >= MAX_SELECT){
-      const b = document.getElementById('selCount');
-      b.animate([{color:'var(--fuchsia)'},{color:'var(--pearl)'}], {duration:900});
+      document.getElementById('selCount').animate([{color:'var(--fuchsia)'},{color:'var(--pearl)'}], {duration:900});
       return;
     }
     const p = ALL.find(x=>keyOf(x)===k);
@@ -266,16 +285,17 @@ function onToggle(e){
       url: ((p.variants||[]).find(v=>v.url)||{}).url || ''
     });
     card.classList.add('selected');
+    added = true;
   }
   saveSelection();
   updateSelbar();
+  updateNavBadge(added);
 }
 
 function updateSelbar(){
   const n = selection.size;
   document.getElementById('selCount').textContent = n;
-  const bar = document.getElementById('selbar');
-  bar.classList.toggle('show', n > 0);
+  document.getElementById('selbar').classList.toggle('show', n > 0);
   document.getElementById('selThumbs').innerHTML =
     [...selection.values()].slice(0,6).map(s=>`<img src="${esc(s.image)}" alt="${esc(s.name)}">`).join('');
 }
