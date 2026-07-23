@@ -19,6 +19,12 @@
 .nav-links a:hover{color:var(--text-primary);opacity:1}
 .nav-links a.active{color:var(--champagne)}
 .nav-cat-mobile{display:none;font-family:var(--font-ui);font-size:var(--type-small);font-weight:var(--weight-ui-semibold);letter-spacing:.02em;color:var(--champagne);border:1px solid var(--border-foil);padding:8px 16px}
+.nav-tryon{white-space:nowrap}
+.nav-tryon.has-picks{color:var(--champagne)}
+.nav-badge{min-width:19px;height:19px;padding:0 5px;border-radius:var(--radius-pill);background:var(--champagne);color:var(--ink);font-family:var(--font-ui);font-size:11px;font-weight:var(--weight-ui-semibold);line-height:1;vertical-align:middle;margin-left:2px;display:none;align-items:center;justify-content:center}
+.nav-tryon.has-picks .nav-badge{display:inline-flex}
+.nav-badge.pulse{animation:badgePulse .7s var(--ease-out)}
+@keyframes badgePulse{0%{transform:scale(1);box-shadow:0 0 0 0 rgba(198,161,91,.6)}50%{transform:scale(1.35);box-shadow:0 0 0 9px rgba(198,161,91,0)}100%{transform:scale(1);box-shadow:0 0 0 0 rgba(198,161,91,0)}}
 
 /* ---------- Intro ---------- */
 .intro{padding-top:104px;padding-bottom:8px;display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap}
@@ -99,10 +105,10 @@
     <div class="nav-links">
       <a href="index.html#edit">The edit</a>
       <a href="catalogo.html" class="active">Catalog</a>
-      <a href="probador.html">Try-On</a>
+      <a href="probador.html" class="nav-tryon">Try-On <span class="nav-badge">0</span></a>
       <a href="index.html#curation">Curation</a>
     </div>
-    <a href="probador.html" class="nav-cat-mobile">Try-On</a>
+    <a href="probador.html" class="nav-cat-mobile nav-tryon">Try-On <span class="nav-badge">0</span></a>
   </div>
 </nav>
 
@@ -168,6 +174,14 @@ const selection = new Map();
 
 try { JSON.parse(sessionStorage.getItem(SEL_KEY) || '[]').forEach(x => selection.set(x.ref, x)); } catch {}
 function saveSelection(){ sessionStorage.setItem(SEL_KEY, JSON.stringify([...selection.values()])); }
+function updateNavBadge(pulse){
+  const n = selection.size;
+  document.querySelectorAll('.nav-tryon').forEach(link=>{
+    link.classList.toggle('has-picks', n > 0);
+    const b = link.querySelector('.nav-badge');
+    if(b){ b.textContent = n; if(pulse){ b.classList.remove('pulse'); void b.offsetWidth; b.classList.add('pulse'); } }
+  });
+}
 
 /* preselect a category from ?cat= (home menu links here) */
 const wantedCat = new URLSearchParams(location.search).get('cat');
@@ -182,6 +196,7 @@ const wantedCat = new URLSearchParams(location.search).get('cat');
     render();
     document.getElementById('summary').textContent = `${ALL.length} hats from Bullhide · tap ✓ to try one on`;
     updateSelbar();
+    updateNavBadge(false);
   }catch(e){
     document.getElementById('summary').textContent = "Couldn't load the catalog: " + e.message;
   }
@@ -249,6 +264,7 @@ function onToggle(e){
   e.preventDefault();
   const k = e.currentTarget.getAttribute('data-key');
   const card = e.currentTarget.closest('.card');
+  let added = false;
   if(selection.has(k)){
     selection.delete(k);
     card.classList.remove('selected');
@@ -265,9 +281,11 @@ function onToggle(e){
       url: ((p.variants||[]).find(v=>v.url)||{}).url || ''
     });
     card.classList.add('selected');
+    added = true;
   }
   saveSelection();
   updateSelbar();
+  updateNavBadge(added);
 }
 
 function updateSelbar(){

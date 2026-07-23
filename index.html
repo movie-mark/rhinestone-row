@@ -21,6 +21,10 @@
 .nav-bag:hover{background:rgba(198,161,91,.12);opacity:1}
 .nav-cat-mobile{display:none;font-family:var(--font-ui);font-size:var(--type-small);font-weight:var(--weight-ui-semibold);letter-spacing:.02em;color:var(--champagne);border:1px solid var(--border-foil);padding:8px 16px}
 .nav-cat-mobile:hover{opacity:1;color:var(--champagne)}
+.nav-tryon{white-space:nowrap}
+.nav-tryon.has-picks{color:var(--champagne)}
+.nav-badge{min-width:19px;height:19px;padding:0 5px;border-radius:var(--radius-pill);background:var(--champagne);color:var(--ink);font-family:var(--font-ui);font-size:11px;font-weight:var(--weight-ui-semibold);line-height:1;vertical-align:middle;margin-left:2px;display:none;align-items:center;justify-content:center}
+.nav-tryon.has-picks .nav-badge{display:inline-flex}
 
 /* ---------- Hero ---------- */
 .hero{position:relative;min-height:100svh;display:flex;align-items:center;background:#0B0910 url('assets/hero.jpg') no-repeat right center / cover}
@@ -124,7 +128,7 @@
     <div class="nav-links">
       <a href="#edit">The edit</a>
       <a href="catalogo.html">Catalog</a>
-      <a href="probador.html">Try-On</a>
+      <a href="probador.html" class="nav-tryon">Try-On <span class="nav-badge">0</span></a>
       <a href="#curation">Curation</a>
       <a href="#">Editorial</a>
       <a href="#" class="nav-bag">Bag — 0</a>
@@ -274,6 +278,19 @@
     <span>Curated ✦ Elevated ✦ Worn</span>
   </div>
 </footer>
+
+<script>
+/* Light up the Try-On nav with the count of hats waiting in the fitting room */
+(function(){
+  var n = 0;
+  try { n = (JSON.parse(sessionStorage.getItem('rr_tryon_selection') || '[]') || []).length; } catch (e) {}
+  document.querySelectorAll('.nav-tryon').forEach(function(link){
+    link.classList.toggle('has-picks', n > 0);
+    var b = link.querySelector('.nav-badge');
+    if (b) b.textContent = n;
+  });
+})();
+</script>
 
 </body>
 </html>
