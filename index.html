@@ -62,6 +62,21 @@
 .card-tryon:hover{color:var(--champagne-bright);opacity:1}
 .card-tryon .spark{color:var(--fuchsia)}
 
+/* ---------- Collections (category menu) ---------- */
+.collections{padding-top:40px;padding-bottom:96px}
+.collections-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:28px}
+.collections-head h2{font-size:var(--type-title);color:var(--pearl)}
+.collections-head a{font-family:var(--font-ui);font-size:var(--type-small);color:var(--text-secondary)}
+.collections-head a:hover{color:var(--champagne);opacity:1}
+.col-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.col-tile{position:relative;display:flex;flex-direction:column;justify-content:space-between;gap:32px;min-height:150px;padding:22px 22px;background:var(--surface-raised);border:1px solid var(--border-subtle);border-radius:var(--radius-2);transition:border-color var(--dur-base) var(--ease-out),background var(--dur-base) var(--ease-out)}
+.col-tile:hover{border-color:var(--border-foil);background:var(--surface-overlay);opacity:1}
+.col-tile .rr-caps{color:var(--text-tertiary)}
+.col-tile-name{font-family:var(--font-display);font-size:24px;color:var(--pearl);line-height:1.1}
+.col-tile-arrow{font-family:var(--font-ui);font-size:var(--type-small);color:var(--champagne);align-self:flex-start}
+@media (max-width:900px){.col-grid{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:560px){.col-grid{grid-template-columns:1fr}}
+
 /* ---------- Curation (pearl) ---------- */
 .curation{background:var(--pearl)}
 .curation-inner{display:flex;justify-content:space-between;align-items:center;gap:48px;padding-top:88px;padding-bottom:88px}
@@ -108,13 +123,13 @@
     <a href="#" class="nav-logo">Rhinestone Row</a>
     <div class="nav-links">
       <a href="#edit">The edit</a>
-      <a href="catalogo.html">Catálogo</a>
-      <a href="probador.html">Probador</a>
+      <a href="catalogo.html">Catalog</a>
+      <a href="probador.html">Try-On</a>
       <a href="#curation">Curation</a>
       <a href="#">Editorial</a>
       <a href="#" class="nav-bag">Bag — 0</a>
     </div>
-    <a href="catalogo.html" class="nav-cat-mobile">Catálogo</a>
+    <a href="catalogo.html" class="nav-cat-mobile">Catalog</a>
   </div>
 </nav>
 
@@ -136,7 +151,7 @@
 <section class="edit wrap" id="edit">
   <div class="edit-head">
     <h2>This week's edit</h2>
-    <a href="catalogo.html">Ver catálogo completo →</a>
+    <a href="catalogo.html">See all →</a>
   </div>
   <div class="grid">
     <article class="card">
@@ -148,7 +163,7 @@
         <span class="rr-caps card-sub">Bullhide · crazy horse leather</span>
         <span class="card-name">Kingman — tobacco</span>
         <span class="card-price">$248</span>
-        <a class="card-tryon" href="probador.html?hat=leather-distressed">Pruébatelo <span class="spark">✦</span></a>
+        <a class="card-tryon" href="probador.html?hat=leather-distressed">Try it on <span class="spark">✦</span></a>
       </div>
     </article>
     <article class="card">
@@ -160,7 +175,7 @@
         <span class="rr-caps card-sub">Bullhide · 50X straw</span>
         <span class="card-name">Rodeo Round-Up — black</span>
         <span class="card-price">$310</span>
-        <a class="card-tryon" href="probador.html?hat=straw-black">Pruébatelo <span class="spark">✦</span></a>
+        <a class="card-tryon" href="probador.html?hat=straw-black">Try it on <span class="spark">✦</span></a>
       </div>
     </article>
     <article class="card">
@@ -172,7 +187,7 @@
         <span class="rr-caps card-sub">Bullhide · crushable leather</span>
         <span class="card-name">Jason — saddle brown</span>
         <span class="card-price">$186</span>
-        <a class="card-tryon" href="probador.html?hat=leather-saddle">Pruébatelo <span class="spark">✦</span></a>
+        <a class="card-tryon" href="probador.html?hat=leather-saddle">Try it on <span class="spark">✦</span></a>
       </div>
     </article>
     <article class="card">
@@ -184,9 +199,48 @@
         <span class="rr-caps card-sub">Bullhide · 6X felt</span>
         <span class="card-name">Montecarlo — rust</span>
         <span class="card-price">$295</span>
-        <a class="card-tryon" href="probador.html?hat=felt-rust">Pruébatelo <span class="spark">✦</span></a>
+        <a class="card-tryon" href="probador.html?hat=felt-rust">Try it on <span class="spark">✦</span></a>
       </div>
     </article>
+  </div>
+</section>
+
+<section class="collections wrap" id="collections">
+  <div class="collections-head">
+    <h2>Shop by collection</h2>
+    <a href="catalogo.html">Browse all →</a>
+  </div>
+  <div class="col-grid">
+    <a class="col-tile" href="catalogo.html?cat=Leather">
+      <span class="rr-caps">Rugged &amp; real</span>
+      <span class="col-tile-name">Leather</span>
+      <span class="col-tile-arrow">Shop leather →</span>
+    </a>
+    <a class="col-tile" href="catalogo.html?cat=Fashion%20Straw%20Collection">
+      <span class="rr-caps">Sun-ready</span>
+      <span class="col-tile-name">Fashion Straw</span>
+      <span class="col-tile-arrow">Shop straw →</span>
+    </a>
+    <a class="col-tile" href="catalogo.html?cat=Montecarlo%20Felt%20Hats">
+      <span class="rr-caps">Show-stoppers</span>
+      <span class="col-tile-name">Montecarlo Felt</span>
+      <span class="col-tile-arrow">Shop felt →</span>
+    </a>
+    <a class="col-tile" href="catalogo.html?cat=Rodeo%20Round%20Up%20Felt%20Collection">
+      <span class="rr-caps">Arena-born</span>
+      <span class="col-tile-name">Rodeo Round-Up</span>
+      <span class="col-tile-arrow">Shop the collection →</span>
+    </a>
+    <a class="col-tile" href="catalogo.html?cat=PBR%20Straw%20Hats">
+      <span class="rr-caps">Ride-or-die</span>
+      <span class="col-tile-name">PBR Straw</span>
+      <span class="col-tile-arrow">Shop PBR →</span>
+    </a>
+    <a class="col-tile" href="catalogo.html?cat=Closeout">
+      <span class="rr-caps">Last call</span>
+      <span class="col-tile-name">The Outlet</span>
+      <span class="col-tile-arrow">Shop deals →</span>
+    </a>
   </div>
 </section>
 
