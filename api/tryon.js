@@ -28,14 +28,26 @@ module.exports = async (req, res) => {
   if (typeof body === 'string') { try { body = JSON.parse(body); } catch { body = null; } }
   if (!body || typeof body !== 'object') { res.status(400).json({ error: 'bad_body' }); return; }
 
-  const { personImage, hat, aspect } = body;
+  const { personImage, hat, hatImageUrl, aspect } = body;
   if (typeof personImage !== 'string' || !personImage.startsWith('data:image/')) { res.status(400).json({ error: 'bad_image' }); return; }
   if (personImage.length > 8_000_000) { res.status(413).json({ error: 'image_too_large' }); return; }
-  const hatFile = HAT_FILES[hat];
-  if (!hatFile) { res.status(400).json({ error: 'bad_hat' }); return; }
 
+  // El sombrero puede venir por key (destacados, servidos desde este sitio)
+  // o por URL del proveedor (catálogo) — restringida al dominio de Bullhide.
   const proto = (req.headers['x-forwarded-proto'] || 'https').split(',')[0];
-  const hatUrl = `${proto}://${host}/assets/${hatFile}`;
+  let hatUrl = null;
+  if (HAT_FILES[hat]) {
+    hatUrl = `${proto}://${host}/assets/${HAT_FILES[hat]}`;
+  } else if (typeof hatImageUrl === 'string') {
+    try {
+      const u = new URL(hatImageUrl);
+      if (u.protocol === 'https:' && (u.hostname === 'bullhidehats.com' || u.hostname.endsWith('.bullhidehats.com'))) {
+        hatUrl = u.href;
+      }
+    } catch { /* url inválida */ }
+  }
+  if (!hatUrl) { res.status(400).json({ error: 'bad_hat' }); return; }
+
   const aspect_ratio = ASPECTS.has(aspect) ? aspect : 'auto';
 
   try {
