@@ -79,6 +79,9 @@
 
 /* ---------- Controls ---------- */
 .controls{display:flex;gap:12px;flex-wrap:wrap}
+.generate-block{display:flex;flex-direction:column;gap:13px}
+.ack{display:inline-flex;align-items:center;gap:9px;font-family:var(--font-ui);font-size:var(--type-small);color:var(--text-secondary);cursor:pointer;user-select:none;align-self:flex-start}
+.ack input{width:17px;height:17px;accent-color:var(--champagne);cursor:pointer;margin:0;flex:0 0 auto}
 .ai-note{color:var(--text-tertiary);font-size:10px}
 .empty-state{display:flex;flex-direction:column;align-items:center;text-align:center;gap:16px;padding:72px 24px;border:1px solid var(--border-subtle);border-radius:var(--radius-2);background:var(--surface-raised)}
 .empty-state[hidden]{display:none}
@@ -162,12 +165,15 @@
     </div>
   </div>
 
-  <div class="controls">
-    <button class="btn btn-foil" id="aiGenerate">Generate ✦</button>
-    <button class="btn btn-outline" id="uploadBtn">Upload a photo</button>
-    <button class="btn btn-outline" id="aiDownload" hidden>Download ✦</button>
-    <button class="btn btn-outline" id="aiRetry" hidden>Try another</button>
-    <input type="file" id="fileInput" accept="image/*" hidden>
+  <div class="generate-block">
+    <label class="ack"><input type="checkbox" id="ackBox"> I've read the note below.</label>
+    <div class="controls">
+      <button class="btn btn-foil" id="aiGenerate" disabled>Generate ✦</button>
+      <button class="btn btn-outline" id="uploadBtn">Upload a photo</button>
+      <button class="btn btn-outline" id="aiDownload" hidden>Download ✦</button>
+      <button class="btn btn-outline" id="aiRetry" hidden>Try another</button>
+      <input type="file" id="fileInput" accept="image/*" hidden>
+    </div>
   </div>
   <p class="ai-disclosure">Fair warning — this is AI having a go, not a mirror. It catches the shape, the color, the swagger, but the odd stitch or concho might wander off. It's here so you can picture yourself in it, not count the threads. The real hat always wears better.</p>
   </div>
@@ -267,6 +273,17 @@ document.addEventListener('visibilitychange', () => { if (document.hidden && mod
 window.addEventListener('pagehide', () => { if (mode === 'live') stopCamera(); });
 
 /* ---------- Photo upload ---------- */
+/* ---------- Acknowledge gate: can't Generate until the note is marked read ---------- */
+const ackBox = $('ackBox');
+function syncGenerate(){ $('aiGenerate').disabled = !(ackBox && ackBox.checked); }
+if (ackBox) {
+  if (sessionStorage.getItem('rr_ai_ack') === '1') ackBox.checked = true;
+  ackBox.addEventListener('change', () => {
+    if (ackBox.checked) sessionStorage.setItem('rr_ai_ack', '1'); else sessionStorage.removeItem('rr_ai_ack');
+    syncGenerate();
+  });
+}
+
 $('uploadBtn').addEventListener('click', () => $('fileInput').click());
 $('fileInput').addEventListener('change', async e => {
   const file = e.target.files[0];
@@ -339,7 +356,7 @@ function aiError(msg) {
   aiLoaderOn(false);
   aiResult.hidden = true; aiPlaceholder.hidden = false;
   $('aiPlaceholderText').textContent = msg;
-  $('aiGenerate').disabled = false; $('aiRetry').hidden = false;
+  syncGenerate(); $('aiRetry').hidden = false;
 }
 async function generateAI() {
   const src = personSource();
@@ -372,7 +389,7 @@ async function generateAI() {
     aiResult.onload = () => {
       aiLoaderOn(false);
       aiResult.hidden = false;
-      $('aiDownload').hidden = false; $('aiRetry').hidden = false; $('aiGenerate').disabled = false;
+      $('aiDownload').hidden = false; $('aiRetry').hidden = false; syncGenerate();
     };
     aiResult.onerror = () => aiError("Couldn't load the generated image.");
     aiResult.src = data.url;
@@ -431,6 +448,7 @@ if (hats.length) {
   $('tryonBody').hidden = false;
   renderPicker();
   showStart();
+  syncGenerate();
 } else {
   $('emptyState').hidden = false;   // no hats picked yet → prompt to choose a reference
 }
