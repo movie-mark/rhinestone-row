@@ -190,14 +190,6 @@
 const $ = id => document.getElementById(id);
 const esc = s => (s || '').toString().replace(/"/g, '&quot;');
 
-/* ---------- Featured hats (served from this site) ---------- */
-const FEATURED = [
-  { id: 'felt-rust',          name: 'Montecarlo — rust',       price: '$295', thumb: 'assets/tryon/hat-felt-rust.png',          payload: { hat: 'felt-rust' } },
-  { id: 'leather-distressed', name: 'Kingman — tobacco',       price: '$248', thumb: 'assets/tryon/hat-leather-distressed.png', payload: { hat: 'leather-distressed' } },
-  { id: 'leather-saddle',     name: 'Jason — saddle brown',    price: '$186', thumb: 'assets/tryon/hat-leather-saddle.png',      payload: { hat: 'leather-saddle' } },
-  { id: 'straw-black',        name: 'Rodeo Round-Up — black',  price: '$310', thumb: 'assets/tryon/hat-straw-black.png',          payload: { hat: 'straw-black' } },
-];
-
 const AI_PHRASES = [
   'Tailoring your look…',
   'Shaping the brim…',
@@ -413,10 +405,8 @@ $('aiDownload').addEventListener('click', async () => {
   } catch { window.open(aiResultUrl, '_blank'); }
 });
 
-/* ---------- Catalog selection (from the catalog page) ---------- */
+/* ---------- Catalog selection (the only way into the fitting room) ---------- */
 function initCatalogSelection() {
-  const wanted = new URLSearchParams(location.search).get('hat');
-  if (FEATURED.some(h => h.id === wanted)) { hats = FEATURED; current = FEATURED.find(h => h.id === wanted); return; }
   let sel = [];
   try { sel = JSON.parse(sessionStorage.getItem('rr_tryon_selection') || '[]'); } catch {}
   sel = (sel || []).filter(x => x && x.image);
