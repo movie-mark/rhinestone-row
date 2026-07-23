@@ -28,13 +28,14 @@
 .btn-outline{background:transparent;color:var(--text-primary);border-color:var(--border-strong)}
 .btn-outline:hover{border-color:var(--champagne);color:var(--champagne);opacity:1}
 .btn[disabled]{opacity:.4;pointer-events:none}
+.btn[hidden]{display:none}
 
 /* ---------- Probador ---------- */
 .tryon{padding-top:120px;padding-bottom:80px;display:flex;flex-direction:column;gap:24px}
 .tryon-head{display:flex;flex-direction:column;gap:10px;max-width:560px}
 .tryon-head .rr-caps{color:var(--champagne);display:flex;align-items:center;gap:10px}
 .tryon-head .spark{color:var(--fuchsia);font-size:13px}
-.tryon-head h1{font-size:var(--type-title);color:var(--pearl)}
+.tryon-head h1,.tryon-head h2{font-size:var(--type-title);color:var(--pearl)}
 .tryon-head p{font-family:var(--font-ui);font-size:var(--type-body);color:var(--text-secondary);margin:0}
 
 .tryon-main{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:28px;align-items:start}
@@ -81,6 +82,22 @@
 .manual .manual-hint{font-family:var(--font-ui);font-size:var(--type-small);color:var(--text-tertiary)}
 .manual button{align-self:flex-start}
 
+/* ---------- Probador IA ---------- */
+.aitryon{padding-top:56px;padding-bottom:88px;display:flex;flex-direction:column;gap:24px;border-top:1px solid var(--border-subtle)}
+.ai-main{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:28px;align-items:start}
+.ai-stage{position:relative;background:#0B0910;border:1px solid var(--border-foil);border-radius:var(--radius-2);overflow:hidden;aspect-ratio:4/3;display:flex;align-items:center;justify-content:center}
+.ai-stage img{max-width:100%;max-height:100%;object-fit:contain;display:block}
+.ai-placeholder,.ai-loader{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;text-align:center;padding:32px}
+.ai-loader{background:var(--scrim)}
+.ai-placeholder[hidden],.ai-loader[hidden],.ai-stage img[hidden]{display:none}
+.ai-placeholder .status-spark,.ai-loader .status-spark{font-family:var(--font-display);font-size:44px;color:var(--champagne);line-height:1}
+.ai-placeholder .status-spark.pulse,.ai-loader .status-spark.pulse{animation:pulse 1.2s var(--ease-in-out) infinite}
+.ai-placeholder p{font-family:var(--font-ui);color:var(--text-secondary);font-size:var(--type-body);max-width:340px;margin:0}
+.ai-loader p{font-family:var(--font-display);font-style:italic;color:var(--text-primary);font-size:22px;letter-spacing:.01em;max-width:340px;margin:0}
+.ai-actions{display:flex;flex-direction:column;gap:10px}
+.ai-actions .btn{width:100%}
+.ai-note{color:var(--text-tertiary);font-size:10px;margin-top:4px}
+
 /* ---------- Debug ---------- */
 .debug{position:fixed;right:16px;bottom:16px;z-index:20;background:var(--surface-overlay);border:1px solid var(--border-strong);border-radius:var(--radius-2);box-shadow:var(--shadow-overlay);padding:16px;display:flex;flex-direction:column;gap:8px;width:260px;font-family:var(--font-ui);font-size:12px;color:var(--text-secondary)}
 .debug label{display:flex;justify-content:space-between;gap:8px}
@@ -95,6 +112,8 @@
   .tryon-main{grid-template-columns:1fr}
   .stage{aspect-ratio:3/4}
   .hat-picker{grid-template-columns:repeat(4,1fr)}
+  .ai-main{grid-template-columns:1fr}
+  .ai-stage{aspect-ratio:3/4}
 }
 @media (max-width:560px){
   .controls{flex-direction:column}
@@ -156,6 +175,33 @@
         <input type="range" id="manualScale" min="0.82" max="1.25" step="0.01" value="1">
         <button class="btn btn-outline" id="manualReset" style="padding:9px 18px;font-size:12px">Reajustar</button>
       </div>
+    </aside>
+  </div>
+</section>
+
+<section class="aitryon wrap">
+  <div class="tryon-head">
+    <span class="rr-caps"><span class="spark">✦</span> El probador con IA</span>
+    <h2>¿Y en la vida real?</h2>
+    <p>Nuestra IA toma tu foto de arriba (cámara o la que subiste) y el sombrero elegido, y genera una imagen realista tuya con él puesto. Tarda unos segundos.</p>
+  </div>
+  <div class="ai-main">
+    <div class="ai-stage" id="aiStage">
+      <img id="aiResult" hidden alt="Tu look generado con IA">
+      <div class="ai-placeholder" id="aiPlaceholder">
+        <span class="status-spark">✦</span>
+        <p id="aiPlaceholderText">Activa la cámara o sube una foto arriba, elige tu sombrero y pulsa “Generar con IA”.</p>
+      </div>
+      <div class="ai-loader" id="aiLoader" hidden>
+        <span class="status-spark pulse">✦</span>
+        <p id="aiLoaderText">Tailoring your look…</p>
+      </div>
+    </div>
+    <aside class="ai-actions">
+      <button class="btn btn-foil" id="aiGenerate">Generar con IA ✦</button>
+      <button class="btn btn-outline" id="aiDownload" hidden>Descargar ✦</button>
+      <button class="btn btn-outline" id="aiRetry" hidden>Generar otra</button>
+      <span class="rr-caps ai-note">Imagen generada por IA · el resultado puede variar</span>
     </aside>
   </div>
 </section>
@@ -567,6 +613,110 @@ $('shootBtn').addEventListener('click', async () => {
   a.download = file.name;
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+});
+
+/* ---------- Probador con IA (Fal, vía /api/tryon) ---------- */
+const AI_PHRASES = [
+  'Tailoring your look…',
+  'Shaping the brim…',
+  'Steaming the felt…',
+  'Finding your best angle…',
+  'Consulting the stylist…',
+  'Setting the crease…',
+  'Dialing in the fit…',
+  'Dusting it off…',
+  'Catching the golden hour…',
+  'Almost ready to ride…',
+];
+const aiResult = $('aiResult'), aiLoader = $('aiLoader'), aiPlaceholder = $('aiPlaceholder');
+let aiResultUrl = null, aiPhraseTimer = null;
+
+// Fuente de la persona: el frame actual de la cámara (espejado, como se ve) o la foto subida.
+function personSource() {
+  if (mode === 'live' && video.videoWidth) {
+    const c = document.createElement('canvas');
+    c.width = video.videoWidth; c.height = video.videoHeight;
+    const cx = c.getContext('2d');
+    cx.translate(c.width, 0); cx.scale(-1, 1);
+    cx.drawImage(video, 0, 0);
+    return c;
+  }
+  if (mode === 'photo' && photoImg) return photoImg;
+  return null;
+}
+function nearestAspect(w, h) {
+  const r = w / h;
+  const opts = { '9:16': 9/16, '2:3': 2/3, '3:4': 3/4, '4:5': 4/5, '1:1': 1, '5:4': 5/4, '4:3': 4/3, '3:2': 3/2, '16:9': 16/9 };
+  let best = 'auto', bd = Infinity;
+  for (const key in opts) { const d = Math.abs(opts[key] - r); if (d < bd) { bd = d; best = key; } }
+  return best;
+}
+function aiLoaderOn(on) {
+  aiLoader.hidden = !on;
+  if (on) {
+    let i = 0;
+    $('aiLoaderText').textContent = AI_PHRASES[0];
+    aiPhraseTimer = setInterval(() => { i = (i + 1) % AI_PHRASES.length; $('aiLoaderText').textContent = AI_PHRASES[i]; }, 2200);
+  } else if (aiPhraseTimer) { clearInterval(aiPhraseTimer); aiPhraseTimer = null; }
+}
+function aiError(msg) {
+  aiLoaderOn(false);
+  aiResult.hidden = true; aiPlaceholder.hidden = false;
+  $('aiPlaceholderText').textContent = msg;
+  $('aiGenerate').disabled = false; $('aiRetry').hidden = false;
+}
+async function generateAI() {
+  const src = personSource();
+  if (!src) { setToast('Primero activa la cámara o sube una foto arriba'); return; }
+  const MAX = 1280;
+  const k = Math.min(1, MAX / Math.max(src.width, src.height));
+  const c = document.createElement('canvas');
+  c.width = Math.round(src.width * k); c.height = Math.round(src.height * k);
+  c.getContext('2d').drawImage(src, 0, 0, c.width, c.height);
+  const personImage = c.toDataURL('image/jpeg', 0.85);
+  const aspect = nearestAspect(src.width, src.height);
+
+  aiResult.hidden = true; aiPlaceholder.hidden = true;
+  $('aiDownload').hidden = true; $('aiRetry').hidden = true; $('aiGenerate').disabled = true;
+  aiLoaderOn(true);
+
+  try {
+    const r = await fetch('/api/tryon', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ personImage, hat: currentHat, aspect }),
+    });
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok || !data.url) {
+      aiError(data.error === 'unconfigured'
+        ? 'El probador con IA todavía no está activado. Vuelve pronto.'
+        : 'No se pudo generar la imagen. Inténtalo otra vez.');
+      return;
+    }
+    aiResultUrl = data.url;
+    aiResult.onload = () => {
+      aiLoaderOn(false);
+      aiResult.hidden = false;
+      $('aiDownload').hidden = false; $('aiRetry').hidden = false; $('aiGenerate').disabled = false;
+    };
+    aiResult.onerror = () => aiError('No se pudo cargar la imagen generada.');
+    aiResult.src = data.url;
+  } catch {
+    aiError('No se pudo conectar. Revisa tu conexión e inténtalo otra vez.');
+  }
+}
+$('aiGenerate').addEventListener('click', generateAI);
+$('aiRetry').addEventListener('click', generateAI);
+$('aiDownload').addEventListener('click', async () => {
+  if (!aiResultUrl) return;
+  try {
+    const resp = await fetch(aiResultUrl);
+    const blob = await resp.blob();
+    const file = new File([blob], `rhinestone-row-${currentHat}-ia.jpg`, { type: blob.type || 'image/jpeg' });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file] }); return; }
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = file.name; a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+  } catch { window.open(aiResultUrl, '_blank'); }
 });
 
 /* ---------- Selector de sombrero ---------- */
